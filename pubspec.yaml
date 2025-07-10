@@ -37,6 +37,8 @@ dependencies:
   hugeicons: ^0.0.11
   flutter_secure_storage: ^9.2.4
   http: ^1.4.0
+  flutter_native_splash: ^2.4.6
+  google_fonts: ^6.2.1
 
 dev_dependencies:
   flutter_test:
