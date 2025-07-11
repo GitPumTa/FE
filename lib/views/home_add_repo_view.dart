@@ -8,6 +8,13 @@ class HomeAddRepoView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      backgroundColor: Color(0xfffafafa),
+      appBar: AppBar(
+        backgroundColor: Color(0xfffafafa),
+        title: Text('Add Repo'),
+        centerTitle: true,
+      ),
+    );
   }
 }

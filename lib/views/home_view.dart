@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gitpumta/views/home_timer_view.dart';
+import '../models/repo.dart';
 import '../views/widgets/bottom_nav.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -19,8 +20,34 @@ class HomeView extends GetView<HomeController> {
         padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         child: Column(
           children: [
-            Text('홈 화면'),
-            // 탭
+            Obx(
+              () {
+                final activeId = controller.activeRepoId.value;
+                final repo = controller.repos.firstWhereOrNull(
+                  (r) => r.id == activeId,
+                );
+
+                return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(controller.formatDateTime(controller.currentTime.value),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(controller.formatDuration(controller.totalDuration),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: repo == null ? Colors.black :
+                            repo.status == TimerStatus.running ?
+                        Color(0xffff8126) : Colors.black,
+                      )),
+                ],
+              );},
+            ),
+            SizedBox(height: 20),
             Obx(() {
               return Container(
                 height: 44,
@@ -65,11 +92,11 @@ class HomeView extends GetView<HomeController> {
             Obx(() {
               switch (controller.selected.value) {
                 case TabType.timer:
-                  return HomeTimerView(); // 이미 만들어둔 View
+                  return HomeTimerView();
                 case TabType.group:
-                  return HomeGroupView(); // 이미 만들어둔 View
+                  return HomeGroupView();
               }
-            })
+            }),
           ],
         ),
       ),
