@@ -10,7 +10,9 @@ class SettingView extends GetView<SettingController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xfffafafa),
       appBar: AppBar(
+        backgroundColor: Color(0xfffafafa),
         title: Text('설정'),
         centerTitle: true,
       ),
