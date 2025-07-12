@@ -230,7 +230,9 @@ class GroupSearchView extends GetView<GroupController> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: group.isActive
+                            ? null  // 이미 가입한 그룹은 비활성화
+                            : () {
                           final password = passwordController.text;
                           final isValid = controller.verifyGroupPassword(group, password);
 
@@ -252,14 +254,17 @@ class GroupSearchView extends GetView<GroupController> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xffff8126),
+                          backgroundColor: group.isActive ? Colors.grey.shade400 : const Color(0xffff8126),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text('그룹 가입'),
+                        child: Text(
+                          group.isActive ? '이미 가입한 그룹' : '그룹 가입',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                   ],

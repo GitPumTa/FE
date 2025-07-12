@@ -72,24 +72,58 @@ class GroupController extends GetxController {
   // 그룹 가입 성공 처리 (추후 서버 요청 등 추가 가능)
   void joinGroup(Group group) {
     final index = groups.indexWhere((g) => g.id == group.id);
-    if (index != -1 && groups[index].currentMembers < groups[index].maxMembers) {
-      final updated = groups[index].copyWith(
-        currentMembers: groups[index].currentMembers + 1,
-      );
-      groups[index] = updated;
 
-      // filteredGroups도 동기화
-      final fIndex = filteredGroups.indexWhere((g) => g.id == group.id);
-      if (fIndex != -1) {
-        filteredGroups[fIndex] = updated;
+    if (index != -1) {
+      final existing = groups[index];
+
+      //이미 가입된 그룹이면 리턴
+      if (existing.isActive) {
+        if (kDebugMode) {
+          print('[ALREADY JOINED] ${existing.name}');
+        }
+        return;
       }
 
-      if (kDebugMode) {
-        print('[JOINED] ${updated.name} | ${updated.memberStatus}');
+      if (existing.currentMembers < existing.maxMembers) {
+        final updated = existing.copyWith(
+          currentMembers: existing.currentMembers + 1,
+          isActive: true, //가입 상태 true로 변경
+        );
+        groups[index] = updated;
+
+        // filteredGroups도 동기화
+        final fIndex = filteredGroups.indexWhere((g) => g.id == group.id);
+        if (fIndex != -1) {
+          filteredGroups[fIndex] = updated;
+        }
+
+        if (kDebugMode) {
+          print('[JOINED] ${updated.name} | ${updated.memberStatus}');
+        }
       }
     }
   }
 
+  void addGroup({
+    required String name,
+    required String description,
+    required int maxMembers,
+    required List<String> rules,
+    required String password,
+  }) {
+    final newGroup = Group(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      description: description,
+      maxMembers: maxMembers,
+      rules: rules,
+      password: password,
+      currentMembers: 1,
+      isActive: true,
+    );
 
+    groups.insert(0, newGroup);
+    searchGroup(''); // 검색어 초기화 → 전체 리스트 재필터링
+  }
 
 }
