@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:gitpumta/middlewares/auth_middleware.dart';
 import 'package:gitpumta/views/group_search_view.dart';
 import 'package:gitpumta/views/home_add_repo_view.dart';
+import 'package:gitpumta/views/setting_statics_view.dart';
 
 import 'package:gitpumta/views/setting_view.dart';
 import 'package:gitpumta/views/sign_up_view.dart';
@@ -38,11 +39,7 @@ class AppRoutes {
       page: () => LoginView(),
       transition: Transition.noTransition,
     ),
-    GetPage(
-      name: signUp,
-      page: () => SignUpView(),
-      transition: Transition.noTransition,
-    ),
+    GetPage(name: signUp, page: () => SignUpView(), transition: Transition.noTransition),
     GetPage(
       name: home,
       binding: HomeBinding(),
@@ -67,7 +64,7 @@ class AppRoutes {
     GetPage(
       name: statics,
       binding: SettingBinding(),
-      page: () => SettingView(),
+      page: () => SettingStaticsView(),
       middlewares: [AuthMiddleware()],
     ),
     GetPage(
@@ -89,6 +86,6 @@ class AppRoutes {
       binding: HomeBinding(),
       page: () => HomeAddRepoView(),
       middlewares: [AuthMiddleware()],
-    ),
+    )
   ];
 }
