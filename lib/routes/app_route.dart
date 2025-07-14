@@ -24,6 +24,7 @@ class AppRoutes {
   static const String searchGroup = '/search_group';
   static const String newRepo = '/new_repo';
   static const String settings = '/settings';
+  static const String statics = '/statics';
   static const String splash = '/splash';
 
   static final routes = [
@@ -37,7 +38,11 @@ class AppRoutes {
       page: () => LoginView(),
       transition: Transition.noTransition,
     ),
-    GetPage(name: signUp, page: () => SignUpView(), transition: Transition.noTransition),
+    GetPage(
+      name: signUp,
+      page: () => SignUpView(),
+      transition: Transition.noTransition,
+    ),
     GetPage(
       name: home,
       binding: HomeBinding(),
@@ -60,6 +65,12 @@ class AppRoutes {
       transition: Transition.noTransition,
     ),
     GetPage(
+      name: statics,
+      binding: SettingBinding(),
+      page: () => SettingView(),
+      middlewares: [AuthMiddleware()],
+    ),
+    GetPage(
       name: newGroup,
       binding: GroupBinding(),
       page: () => GroupAddView(),
@@ -78,6 +89,6 @@ class AppRoutes {
       binding: HomeBinding(),
       page: () => HomeAddRepoView(),
       middlewares: [AuthMiddleware()],
-    )
+    ),
   ];
 }

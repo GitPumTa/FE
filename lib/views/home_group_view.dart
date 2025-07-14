@@ -83,7 +83,9 @@ class HomeGroupView extends GetView<HomeController> {
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    controller.fetchMockRanking();
+                  },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
@@ -120,6 +122,7 @@ class HomeGroupView extends GetView<HomeController> {
         }),
         SizedBox(height: 20),
         Obx(() {
+          // setting에서는 이거 쓰시면 됩니다.
           final leaders =
               controller.ranking.value.durationLeaders.take(3).toList();
           final maxDuration = leaders
@@ -148,7 +151,7 @@ class HomeGroupView extends GetView<HomeController> {
                 SizedBox(height: 30),
                 ...leaders
                     .take(3)
-                    .map((leader) => buildRankingItem(leader, maxDuration))
+                    .map((leader) => buildDurationLeaderItem(leader, maxDuration))
                     .toList(),
               ],
             ),
@@ -203,7 +206,7 @@ class HomeGroupView extends GetView<HomeController> {
     );
   }
 
-  Widget buildRankingItem(DurationLeader leader, Duration maxDuration) {
+  Widget buildDurationLeaderItem(DurationLeader leader, Duration maxDuration) {
     final bool isRunning = leader.status == TimerStatus.running;
     final double ratio = leader.duration.inSeconds / maxDuration.inSeconds;
 

@@ -7,6 +7,7 @@ import '../models/commit.dart';
 import '../models/ranking.dart';
 import '../models/repo.dart';
 
+import '../routes/app_route.dart';
 import '../services/api_service.dart';
 import '../services/token_service.dart';
 
@@ -15,6 +16,7 @@ enum TabType { timer, group }
 class HomeController extends GetxController {
   final ApiService apiService;
   final TokenService tokenService;
+
   HomeController({required this.apiService, required this.tokenService});
 
   Rx<TabType> selected = TabType.timer.obs;
@@ -24,21 +26,22 @@ class HomeController extends GetxController {
   Rx<Ranking> ranking = Ranking.empty().obs;
 
   RxnString activeRepoId = RxnString(null);
+  final Rx<DateTime> currentTime = DateTime.now().obs;
 
   Timer? _timer;
   Timer? _rankingTimer;
 
-  Duration get totalDuration => repos.fold(
-    Duration.zero,
-        (sum, r) => sum + r.duration,
-  );
+  final repoTitleController = TextEditingController();
+  final repoDescriptionController = TextEditingController();
+  final repoAddressController = TextEditingController();
 
-  final Rx<DateTime> currentTime = DateTime.now().obs;
+  Duration get totalDuration =>
+      repos.fold(Duration.zero, (sum, r) => sum + r.duration);
 
   @override
   onInit() {
     super.onInit();
-    fetchMockData();
+    fetchMockRepo();
     fetchMockRanking();
   }
 
@@ -52,17 +55,28 @@ class HomeController extends GetxController {
         : Alignment.centerRight;
   }
 
-  Future<void> fetchMockData() async {
+  Future<void> fetchMockRepo() async {
     await Future.delayed(Duration(seconds: 1));
     // 내 이름으로 등록된 repo 리스트 반환, repo 동기화된 시간 수신 및 동기화.
     repos.value = [
-      Repo(id: '1', title: 'Repo 1', subtitle: 'Sub Title 1', repoAddress: 'Address 1', duration: Duration(seconds: 10)),
-      Repo(id: '2', title: 'Repo 2', subtitle: 'Sub Title 2', repoAddress: 'Address 2', duration: Duration(seconds: 20)),
+      Repo(
+        id: '1',
+        title: 'Repo 1',
+        subtitle: 'Sub Title 1',
+        repoAddress: 'Address 1',
+        duration: Duration(seconds: 10),
+      ),
+      Repo(
+        id: '2',
+        title: 'Repo 2',
+        subtitle: 'Sub Title 2',
+        repoAddress: 'Address 2',
+        duration: Duration(seconds: 20),
+      ),
     ];
   }
 
-
-  Future <void> fetchMockCommit(Repo repo) async {
+  Future<void> fetchMockCommit(Repo repo) async {
     await Future.delayed(Duration(seconds: 1));
     // repo의 git address 로 api 요청 및, commit 리스트 반환, 갯수 반환 및 타이머 실행동안 커밋 수 확인 및 리더보드 등록 요청 보내기.
     commits.value = [
@@ -70,11 +84,54 @@ class HomeController extends GetxController {
       Commit(id: '2', message: 'Commit 2'),
     ];
   }
-  Future <void> fetchMockRanking() async {
+
+  Future<void> makeNewRepo() async {
+    // repoTitleController, repoDescriptionController, repoAddressController 내용을 가지고 fetch 작업을 할거임.
+    await Future.delayed(Duration(seconds: 1));
+
+
+
+    Get.offAllNamed(AppRoutes.home);
+  }
+
+  Future<void> fetchMockRanking() async {
     await Future.delayed(Duration(seconds: 1));
     // 내 등수와 그룹 등수 및 그룹 리더 타이머 상태, 커밋 갯수 반환.
     // 등록한 시간, 총 흐른 시간 으로 타이머 동기화,
-    ranking.value = Ranking.mock();
+    ranking.value = Ranking(
+      durationLeaders: [
+        DurationLeader(
+          name: 'John',
+          duration: Duration(seconds: 3600),
+          rank: 1,
+          status: TimerStatus.running,
+          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
+        ),
+        DurationLeader(
+          name: 'Jane',
+          duration: Duration(seconds: 3400),
+          rank: 2,
+          status: TimerStatus.running,
+          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
+        ),
+        DurationLeader(
+          name: 'Bob',
+          duration: Duration(seconds: 3200),
+          rank: 3,
+          status: TimerStatus.stopped,
+          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
+        ),
+      ],
+      commitLeaders: [
+        CommitLeader(name: 'John', commitCount: 10, rank: 1),
+        CommitLeader(name: 'Jane', commitCount: 8, rank: 2),
+        CommitLeader(name: 'Bob', commitCount: 6, rank: 3),
+      ],
+      myMonitoringGroup: 'Group A',
+      myMonitoringGroupDescription: 'Description of Group A',
+      myRank: 5,
+      myName: 'Alice',
+    );
     _startRankingTimer();
   }
 
@@ -83,13 +140,15 @@ class HomeController extends GetxController {
     _rankingTimer = Timer.periodic(Duration(seconds: 1), (_) {
       final now = DateTime.now();
 
-      final updatedLeaders = ranking.value.durationLeaders.map((leader) {
-        if (leader.status == TimerStatus.running) {
-          final updatedDuration = leader.duration + now.difference(leader.sendAt!);
-          return leader.copyWith(duration: updatedDuration, sendAt: now);
-        }
-        return leader;
-      }).toList();
+      final updatedLeaders =
+          ranking.value.durationLeaders.map((leader) {
+            if (leader.status == TimerStatus.running) {
+              final updatedDuration =
+                  leader.duration + now.difference(leader.sendAt!);
+              return leader.copyWith(duration: updatedDuration, sendAt: now);
+            }
+            return leader;
+          }).toList();
 
       ranking.value = ranking.value.copyWith(durationLeaders: updatedLeaders);
     });
@@ -101,7 +160,9 @@ class HomeController extends GetxController {
     if (_timer != null && activeRepoId.value != null) {
       final prevIndex = repos.indexWhere((r) => r.id == activeRepoId.value);
       if (prevIndex != -1) {
-        repos[prevIndex] = repos[prevIndex].copyWith(status: TimerStatus.paused);
+        repos[prevIndex] = repos[prevIndex].copyWith(
+          status: TimerStatus.paused,
+        );
       }
       _timer!.cancel();
     }
@@ -163,12 +224,11 @@ class HomeController extends GetxController {
     }
     final index = repos.indexWhere((r) => r.id == repoId);
     if (index != -1) {
-      repos[index] = repos[index].copyWith(
-        status: TimerStatus.stopped,
-      );
+      repos[index] = repos[index].copyWith(status: TimerStatus.stopped);
       repos.refresh();
     }
   }
+
   String formatDuration(Duration d) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = twoDigits(d.inHours);

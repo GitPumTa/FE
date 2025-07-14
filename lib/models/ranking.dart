@@ -47,43 +47,7 @@ class Ranking {
     );
   }
 
-  factory Ranking.mock() {
-    // 테스트용 목데이터.
-    return Ranking(
-      durationLeaders: [
-        DurationLeader(
-          name: 'John',
-          duration: Duration(seconds: 3600),
-          rank: 1,
-          status: TimerStatus.running,
-          sendAt: DateTime(2025, 7, 12, 18, 55, 0),
-        ),
-        DurationLeader(
-          name: 'Jane',
-          duration: Duration(seconds: 3400),
-          rank: 2,
-          status: TimerStatus.running,
-          sendAt: DateTime(2025, 7, 12, 18, 55, 0),
-        ),
-        DurationLeader(
-          name: 'Bob',
-          duration: Duration(seconds: 3200),
-          rank: 3,
-          status: TimerStatus.paused,
-          sendAt: DateTime(2025, 7, 12, 18, 55, 0),
-        ),
-      ],
-      commitLeaders: [
-        CommitLeader(name: 'John', commitCount: 10, rank: 1),
-        CommitLeader(name: 'Jane', commitCount: 8, rank: 2),
-        CommitLeader(name: 'Bob', commitCount: 6, rank: 3),
-      ],
-      myMonitoringGroup: 'Group A',
-      myMonitoringGroupDescription: 'Description of Group A',
-      myRank: 5,
-      myName: 'Alice',
-    );
-  }
+
 
   Ranking copyWith({
     List<DurationLeader>? durationLeaders,
