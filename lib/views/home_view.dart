@@ -16,7 +16,7 @@ class HomeView extends GetView<HomeController> {
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Color(0xfffafafa),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         child: Column(
           children: [
@@ -39,7 +39,6 @@ class HomeView extends GetView<HomeController> {
                   Text(controller.formatDuration(controller.totalDuration),
                       style: TextStyle(
                         fontSize: 20,
-                        fontWeight: FontWeight.bold,
                         color: repo == null ? Colors.black :
                             repo.status == TimerStatus.running ?
                         Color(0xffff8126) : Colors.black,

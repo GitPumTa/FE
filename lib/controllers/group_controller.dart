@@ -10,6 +10,11 @@ import '../models/group.dart';
 class GroupController extends GetxController {
   RxList<Group> groups = <Group>[].obs;
   RxList<Group> filteredGroups = <Group>[].obs;
+  Rx<Group?> selectedGroup = Rx<Group?>(null);
+
+  void selectGroup(Group group) {
+    selectedGroup.value = group;
+  }
 
   @override
   void onInit() {
