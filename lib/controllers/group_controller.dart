@@ -3,14 +3,21 @@
 // class GroupController extends GetxController {
 //
 // }
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../models/group.dart';
+import '../models/ranking.dart';
+import '../models/repo.dart';
 
 class GroupController extends GetxController {
   RxList<Group> groups = <Group>[].obs;
   RxList<Group> filteredGroups = <Group>[].obs;
   Rx<Group?> selectedGroup = Rx<Group?>(null);
+  Rx<Ranking> ranking = Ranking.empty().obs;
+
+  Timer? _rankingTimer;
 
   void selectGroup(Group group) {
     selectedGroup.value = group;
@@ -20,6 +27,7 @@ class GroupController extends GetxController {
   void onInit() {
     super.onInit();
     fetchGroups();
+    fetchMockRanking();
   }
 
   void fetchGroups() {
@@ -129,6 +137,73 @@ class GroupController extends GetxController {
 
     groups.insert(0, newGroup);
     searchGroup(''); // 검색어 초기화 → 전체 리스트 재필터링
+  }
+
+  Future<void> fetchMockRanking() async {
+    await Future.delayed(Duration(seconds: 1));
+    // 내 등수와 그룹 등수 및 그룹 리더 타이머 상태, 커밋 갯수 반환, 그룹 드롭 다운 선택, 그룹 설명 반환.
+    // 등록한 시간, 총 흐른 시간 으로 타이머 동기화,
+    ranking.value = Ranking(
+      durationLeaders: [
+        DurationLeader(
+          name: 'John',
+          duration: Duration(seconds: 3600),
+          rank: 1,
+          status: TimerStatus.running,
+          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
+        ),
+        DurationLeader(
+          name: 'Jane',
+          duration: Duration(seconds: 3400),
+          rank: 2,
+          status: TimerStatus.running,
+          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
+        ),
+        DurationLeader(
+          name: 'Bob',
+          duration: Duration(seconds: 3200),
+          rank: 3,
+          status: TimerStatus.stopped,
+          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
+        ),
+      ],
+      commitLeaders: [
+        CommitLeader(name: 'John', commitCount: 10, rank: 1),
+        CommitLeader(name: 'Jane', commitCount: 8, rank: 2),
+        CommitLeader(name: 'Bob', commitCount: 6, rank: 3),
+      ],
+      myMonitoringGroup: 'Group A',
+      myMonitoringGroupDescription: 'Description of Group A',
+      myRank: 5,
+      myName: 'Alice',
+    );
+    _startRankingTimer();
+  }
+
+  void _startRankingTimer() {
+    _rankingTimer?.cancel();
+    _rankingTimer = Timer.periodic(Duration(seconds: 1), (_) {
+      final now = DateTime.now();
+      final updatedLeaders =
+      ranking.value.durationLeaders.map((leader) {
+        if (leader.status == TimerStatus.running) {
+          final updatedDuration =
+              leader.duration + now.difference(leader.sendAt!);
+          return leader.copyWith(duration: updatedDuration, sendAt: now);
+        }
+        return leader;
+      }).toList();
+
+      ranking.value = ranking.value.copyWith(durationLeaders: updatedLeaders);
+    });
+  }
+
+  String formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(d.inHours);
+    final minutes = twoDigits(d.inMinutes.remainder(60));
+    final seconds = twoDigits(d.inSeconds.remainder(60));
+    return "$hours:$minutes:$seconds";
   }
 
 }
