@@ -35,6 +35,8 @@ class HomeController extends GetxController {
   final repoDescriptionController = TextEditingController();
   final repoAddressController = TextEditingController();
 
+  final RxBool gitAddressApproved = false.obs;
+
   Duration get totalDuration =>
       repos.fold(Duration.zero, (sum, r) => sum + r.duration);
 
@@ -43,6 +45,14 @@ class HomeController extends GetxController {
     super.onInit();
     fetchMockRepo();
     fetchMockRanking();
+  }
+
+  @override
+  void onClose() {
+    super.onClose();
+    _timer?.cancel();
+    _rankingTimer?.cancel();
+    stopTimer(activeRepoId.value);
   }
 
   void toggle(TabType type) {
@@ -83,15 +93,29 @@ class HomeController extends GetxController {
       Commit(id: '1', message: 'Commit 1'),
       Commit(id: '2', message: 'Commit 2'),
     ];
+
   }
 
   Future<void> makeNewRepo() async {
     // repoTitleController, repoDescriptionController, repoAddressController 내용을 가지고 fetch 작업을 할거임.
     await Future.delayed(Duration(seconds: 1));
+    final repoTitle = repoTitleController.text.trim();
+    final repoDescription = repoDescriptionController.text.trim();
+    final repoAddress = repoAddressController.text.trim();
+    if (repoTitle.isEmpty || repoDescription.isEmpty || repoAddress.isEmpty) {
+      Get.toNamed(AppRoutes.home);
+      return;
+    }
+    else {
+      Get.snackbar('오류', "양식을 모두 채워주세요");
+      return;
+    }
+  }
 
-
-
-    Get.offAllNamed(AppRoutes.home);
+  Future<void> approveRepoAddress() async {
+    // repoAddressController 내용을 가지고 fetch 작업을 할거임. 검증이 완료되면 repoAddressController 에 해당하는 TextField입력을 막을것임.
+    await Future.delayed(Duration(seconds: 1));
+    gitAddressApproved.value = true;
   }
 
   Future<void> fetchMockRanking() async {
@@ -139,7 +163,6 @@ class HomeController extends GetxController {
     _rankingTimer?.cancel();
     _rankingTimer = Timer.periodic(Duration(seconds: 1), (_) {
       final now = DateTime.now();
-
       final updatedLeaders =
           ranking.value.durationLeaders.map((leader) {
             if (leader.status == TimerStatus.running) {
