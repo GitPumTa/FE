@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:gitpumta/bindings/ranking_binding.dart';
 import 'package:gitpumta/middlewares/auth_middleware.dart';
 import 'package:gitpumta/views/group_search_view.dart';
 import 'package:gitpumta/views/home_add_repo_view.dart';
@@ -15,6 +16,7 @@ import '../views/group_add_view.dart';
 import '../views/group_view.dart';
 import '../views/home_view.dart';
 import '../views/login_view.dart';
+import '../views/ranking_view.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -27,6 +29,7 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String statics = '/statics';
   static const String splash = '/splash';
+  static const String ranking = '/ranking';
 
   static final routes = [
     GetPage(
@@ -39,7 +42,11 @@ class AppRoutes {
       page: () => LoginView(),
       transition: Transition.noTransition,
     ),
-    GetPage(name: signUp, page: () => SignUpView(), transition: Transition.noTransition),
+    GetPage(
+      name: signUp,
+      page: () => SignUpView(),
+      transition: Transition.noTransition,
+    ),
     GetPage(
       name: home,
       binding: HomeBinding(),
@@ -86,6 +93,12 @@ class AppRoutes {
       binding: HomeBinding(),
       page: () => HomeAddRepoView(),
       middlewares: [AuthMiddleware()],
-    )
+    ),
+    GetPage(
+    name: ranking,
+    binding: RankingBinding(),
+    page: () => RankingView(),
+    transition: Transition.noTransition,
+  ),
   ];
 }
