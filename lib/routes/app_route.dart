@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:gitpumta/bindings/ranking_binding.dart';
 import 'package:gitpumta/middlewares/auth_middleware.dart';
 import 'package:gitpumta/views/group_search_view.dart';
 import 'package:gitpumta/views/home_add_repo_view.dart';
@@ -95,6 +96,7 @@ class AppRoutes {
     ),
     GetPage(
     name: ranking,
+    binding: RankingBinding(),
     page: () => RankingView(),
     transition: Transition.noTransition,
   ),
