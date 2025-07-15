@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../controllers/auth_controller.dart';
 import '../routes/app_route.dart';
@@ -10,18 +11,53 @@ class LoginView extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
+      backgroundColor: Colors.white,
+      body: Container(
+        padding: EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: controller.emailController,
-              decoration: InputDecoration(labelText: '이메일'),
+            Image.asset('logo/playstore-icon.png', width: 200, height: 200),
+            SizedBox(height: 20),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Color(0xFFd9d9d9),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+              ),
+              child: TextField(
+                controller: controller.emailController,
+                decoration: InputDecoration(
+                  icon: Icon(HugeIcons.strokeRoundedUserCircle02, size: 30),
+                  labelText: '아이디 및 이메일',
+                  border: InputBorder.none,
+                ),
+              ),
             ),
-            TextField(
-              controller: controller.passwordController,
-              decoration: InputDecoration(labelText: '비밀번호'),
+            SizedBox(height: 20),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Color(0xFFd9d9d9),
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+              ),
+              child: TextField(
+                controller: controller.passwordController,
+                decoration: InputDecoration(
+                  icon: Icon(HugeIcons.strokeRoundedCircleLock01, size: 30),
+                  labelText: '비밀번호'
+                    ,border: InputBorder.none,),
+              ),
             ),
+            SizedBox(height: 20),
             Row(
               children: [
                 ElevatedButton(

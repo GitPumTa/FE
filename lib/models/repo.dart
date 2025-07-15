@@ -21,8 +21,8 @@ class Repo {
     return Repo(
       id: json['id'],
       title: json['title'],
-      subtitle: json['subTitle'],
-      repoAddress: json['repoAddress'],
+      subtitle: json['sub_title'],
+      repoAddress: json['repo_address'],
     );
   }
 
