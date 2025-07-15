@@ -12,8 +12,15 @@ import '../models/ranking.dart';
 import '../models/repo.dart';
 
 class GroupController extends GetxController {
+  // 전체 그룹 리스트 (원본)
+  RxList<Group> allGroups = <Group>[].obs;
+
+  // 사용자 가입 상태가 반영된 리스트
   RxList<Group> groups = <Group>[].obs;
+
+  // 화면 출력용 필터링된 리스트
   RxList<Group> filteredGroups = <Group>[].obs;
+
   Rx<Group?> selectedGroup = Rx<Group?>(null);
   Rx<Ranking> ranking = Ranking.empty().obs;
 
@@ -31,88 +38,88 @@ class GroupController extends GetxController {
   }
 
   void fetchGroups() {
-    groups.value = [
-      Group(
-        id: '1',
-        name: '현장 프로젝트 2팀',
-        description: '테스트 그룹입니다.',
-        currentMembers: 49,
-        maxMembers: 50,
-        rules: [
+    final dummyJsonList = [
+      {
+        'id': '1',
+        'name': '현장 프로젝트 2팀',
+        'description': '테스트 그룹입니다.',
+        'currentMembers': 49,
+        'maxMembers': 50,
+        'rules': [
           '하루 커밋 횟수 7회 이하시 강퇴',
           '랭킹 1등에게 Ing 쿠폰 제공',
         ],
-        password: '1234',
-        isActive: true,
-      ),
-      ...List.generate(5, (i) {
-        return Group(
-          id: '${i + 2}',
-          name: '테스트 그룹입니다.',
-          description: '테스트 그룹입니다.',
-          currentMembers: 48,
-          maxMembers: 50,
-          rules: [
-            '하루 커밋 1회 이상 필수',
-            '랭킹 3등까지 혜택 제공',
-          ],
-          password: '0000',
-        );
+        'password': '1234',
+        'isActive': true,
+      },
+      ...List.generate(5, (i) => {
+        'id': '${i + 2}',
+        'name': '테스트 그룹입니다.',
+        'description': '테스트 그룹입니다.',
+        'currentMembers': 48,
+        'maxMembers': 50,
+        'rules': [
+          '하루 커밋 1회 이상 필수',
+          '랭킹 3등까지 혜택 제공',
+        ],
+        'password': '0000',
+        'isActive': false,
       }),
     ];
 
-    // 기본 화면 - 그룹 전체 보이기
-    filteredGroups.value = groups;
+    // 원본 전체 그룹 리스트 초기화
+    allGroups.value = dummyJsonList.map((json) => Group.fromJson(json)).toList();
+
+    // 상태 반영용 그룹 리스트 복사
+    groups.value = [...allGroups];
+
+    // 가입하지 않은 그룹만 필터링
+    filteredGroups.value = allGroups.where((group) => !group.isActive).toList();
   }
 
-  void searchGroup(String query) {
-    if (query.isEmpty) {
-      filteredGroups.value = groups;
-    } else {
-      filteredGroups.value = groups
-          .where((g) =>
-      g.name.contains(query) ||
-          g.description.contains(query))
-          .toList();
-    }
+  void searchGroup(String keyword) {
+    final query = keyword.trim();
+    filteredGroups.value = allGroups
+        .where((group) =>
+    !group.isActive && group.name.contains(query))
+        .toList();
   }
 
-  // 그룹 가입 시 비밀번호 확인 로직
   bool verifyGroupPassword(Group group, String inputPassword) {
     return group.password == inputPassword;
   }
 
-  // 그룹 가입 성공 처리 (추후 서버 요청 등 추가 가능)
   void joinGroup(Group group) {
     final index = groups.indexWhere((g) => g.id == group.id);
+    final allIndex = allGroups.indexWhere((g) => g.id == group.id);
 
-    if (index != -1) {
-      final existing = groups[index];
+    if (index == -1 || allIndex == -1) return;
 
-      //이미 가입된 그룹이면 리턴
-      if (existing.isActive) {
-        if (kDebugMode) {
-          print('[ALREADY JOINED] ${existing.name}');
-        }
-        return;
+    final existing = groups[index];
+
+    if (existing.isActive) {
+      if (kDebugMode) {
+        print('[ALREADY JOINED] ${existing.name}');
+      }
+      return;
+    }
+
+    if (existing.currentMembers < existing.maxMembers) {
+      final updatedJson = existing.toJson()
+        ..update('currentMembers', (value) => value + 1)
+        ..update('isActive', (value) => true);
+
+      final updated = Group.fromJson(updatedJson);
+      groups[index] = updated;
+      allGroups[allIndex] = updated;
+
+      final fIndex = filteredGroups.indexWhere((g) => g.id == group.id);
+      if (fIndex != -1) {
+        filteredGroups.removeAt(fIndex); // 가입 후 필터 목록에서 제거
       }
 
-      if (existing.currentMembers < existing.maxMembers) {
-        final updated = existing.copyWith(
-          currentMembers: existing.currentMembers + 1,
-          isActive: true, //가입 상태 true로 변경
-        );
-        groups[index] = updated;
-
-        // filteredGroups도 동기화
-        final fIndex = filteredGroups.indexWhere((g) => g.id == group.id);
-        if (fIndex != -1) {
-          filteredGroups[fIndex] = updated;
-        }
-
-        if (kDebugMode) {
-          print('[JOINED] ${updated.name} | ${updated.memberStatus}');
-        }
+      if (kDebugMode) {
+        print('[JOINED] ${updated.name} | ${updated.memberStatus}');
       }
     }
   }
@@ -124,20 +131,26 @@ class GroupController extends GetxController {
     required List<String> rules,
     required String password,
   }) {
-    final newGroup = Group(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: name,
-      description: description,
-      maxMembers: maxMembers,
-      rules: rules,
-      password: password,
-      currentMembers: 1,
-      isActive: true,
-    );
+    final newGroupJson = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'name': name,
+      'description': description,
+      'currentMembers': 1,
+      'maxMembers': maxMembers,
+      'rules': rules,
+      'password': password,
+      'isActive': true,
+    };
 
+    final newGroup = Group.fromJson(newGroupJson);
+
+    // 모든 리스트에 반영
+    allGroups.insert(0, newGroup);
     groups.insert(0, newGroup);
-    searchGroup(''); // 검색어 초기화 → 전체 리스트 재필터링
+        // 필터된 리스트는 다시 검색해서 갱신
+    searchGroup('');
   }
+
 
   Future<void> fetchMockRanking() async {
     await Future.delayed(Duration(seconds: 1));
@@ -205,5 +218,4 @@ class GroupController extends GetxController {
     final seconds = twoDigits(d.inSeconds.remainder(60));
     return "$hours:$minutes:$seconds";
   }
-
 }

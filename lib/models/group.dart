@@ -19,6 +19,33 @@ class Group {
     this.isActive = false,
   });
 
+  factory Group.fromJson(Map<String, dynamic> json) {
+    return Group(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      currentMembers: json['currentMembers'] ?? 0,
+      maxMembers: json['maxMembers'] ?? 0,
+      rules: List<String>.from(json['rules'] ?? []),
+      password: json['password'] ?? '',
+      isActive: json['isActive'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'currentMembers': currentMembers,
+      'maxMembers': maxMembers,
+      'rules': rules,
+      'password': password,
+      'isActive': isActive,
+    };
+  }
+
+
   Group copyWith({
     String? id,
     String? name,
