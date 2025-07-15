@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 import '../models/commit.dart';
-import '../models/ranking.dart';
 import '../models/repo.dart';
 
 import '../routes/app_route.dart';
@@ -23,13 +22,11 @@ class HomeController extends GetxController {
 
   RxList<Repo> repos = <Repo>[].obs;
   RxList<Commit> commits = <Commit>[].obs;
-  Rx<Ranking> ranking = Ranking.empty().obs;
 
   RxnString activeRepoId = RxnString(null);
   final Rx<DateTime> currentTime = DateTime.now().obs;
 
   Timer? _timer;
-  Timer? _rankingTimer;
 
   final repoTitleController = TextEditingController();
   final repoDescriptionController = TextEditingController();
@@ -44,14 +41,12 @@ class HomeController extends GetxController {
   onInit() {
     super.onInit();
     fetchMockRepo();
-    fetchMockRanking();
   }
 
   @override
   void onClose() {
     super.onClose();
     _timer?.cancel();
-    _rankingTimer?.cancel();
     stopTimer(activeRepoId.value);
   }
 
@@ -118,64 +113,6 @@ class HomeController extends GetxController {
     gitAddressApproved.value = true;
   }
 
-  Future<void> fetchMockRanking() async {
-    await Future.delayed(Duration(seconds: 1));
-    // 내 등수와 그룹 등수 및 그룹 리더 타이머 상태, 커밋 갯수 반환.
-    // 등록한 시간, 총 흐른 시간 으로 타이머 동기화,
-    ranking.value = Ranking(
-      durationLeaders: [
-        DurationLeader(
-          name: 'John',
-          duration: Duration(seconds: 3600),
-          rank: 1,
-          status: TimerStatus.running,
-          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
-        ),
-        DurationLeader(
-          name: 'Jane',
-          duration: Duration(seconds: 3400),
-          rank: 2,
-          status: TimerStatus.running,
-          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
-        ),
-        DurationLeader(
-          name: 'Bob',
-          duration: Duration(seconds: 3200),
-          rank: 3,
-          status: TimerStatus.stopped,
-          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
-        ),
-      ],
-      commitLeaders: [
-        CommitLeader(name: 'John', commitCount: 10, rank: 1),
-        CommitLeader(name: 'Jane', commitCount: 8, rank: 2),
-        CommitLeader(name: 'Bob', commitCount: 6, rank: 3),
-      ],
-      myMonitoringGroup: 'Group A',
-      myMonitoringGroupDescription: 'Description of Group A',
-      myRank: 5,
-      myName: 'Alice',
-    );
-    _startRankingTimer();
-  }
-
-  void _startRankingTimer() {
-    _rankingTimer?.cancel();
-    _rankingTimer = Timer.periodic(Duration(seconds: 1), (_) {
-      final now = DateTime.now();
-      final updatedLeaders =
-          ranking.value.durationLeaders.map((leader) {
-            if (leader.status == TimerStatus.running) {
-              final updatedDuration =
-                  leader.duration + now.difference(leader.sendAt!);
-              return leader.copyWith(duration: updatedDuration, sendAt: now);
-            }
-            return leader;
-          }).toList();
-
-      ranking.value = ranking.value.copyWith(durationLeaders: updatedLeaders);
-    });
-  }
 
   void startTimerFor(String repoId) {
     // 완전 처음일 때, 맨 처음 시작 시간(start at)(맨 처음 시작한 시간으로 커밋 데이터 자를 예정)
@@ -259,11 +196,11 @@ class HomeController extends GetxController {
     final seconds = twoDigits(d.inSeconds.remainder(60));
     return "$hours:$minutes:$seconds";
   }
-
-  double barPercent(DurationLeader leader) {
-    final top = ranking.value.durationLeaders.first.duration.inSeconds;
-    return (leader.duration.inSeconds / top).clamp(0.0, 1.0);
-  }
+  //
+  // double barPercent(DurationLeader leader) {
+  //   final top = ranking.value.durationLeaders.first.duration.inSeconds;
+  //   return (leader.duration.inSeconds / top).clamp(0.0, 1.0);
+  // }
 
   String formatDateTime(DateTime dateTime) {
     final year = dateTime.year;

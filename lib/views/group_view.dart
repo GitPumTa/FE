@@ -1,55 +1,14 @@
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// import 'package:hugeicons/hugeicons.dart';
-// import '../routes/app_route.dart';
-// import '../views/widgets/bottom_nav.dart';
-//
-// import '../controllers/group_controller.dart';
-//
-// class GroupView extends GetView<GroupController> {
-//   const GroupView({super.key});
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: Color(0xfffafafa),
-//         appBar: AppBar(
-//           backgroundColor: Color(0xfffafafa),
-//           title: Text('그룹'),
-//           centerTitle: true,
-//         ),
-//         body: Center(
-//           child: Text('그룹'),
-//         ),
-//       bottomNavigationBar: BottomNavBar(),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: () => Get.toNamed(AppRoutes.searchGroup),
-//         backgroundColor: Colors.white,
-//         elevation: 0,
-//         highlightElevation: 0,
-//         disabledElevation: 0,
-//         shape: RoundedRectangleBorder(
-//           borderRadius: BorderRadius.circular(10),
-//           side: BorderSide(color: Color(0xffd9d9d9), width: 2),
-//         ),
-//         focusColor: Colors.white,
-//         focusElevation: 0,
-//         hoverColor: Colors.white,
-//         hoverElevation: 0,
-//         child: Icon(HugeIcons.strokeRoundedSearch02, color: Colors.grey),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gitpumta/views/widgets/bottom_nav.dart';
 import 'package:hugeicons/hugeicons.dart';
 
-import '../routes/app_route.dart';
-import '../views/widgets/bottom_nav.dart';
 import '../controllers/group_controller.dart';
-import '../models/group.dart';
+
+import '../routes/app_route.dart';
+
+import 'widgets/commit_leader_widget.dart';
+import 'widgets/duration_leader_widget.dart';
 
 class GroupView extends GetView<GroupController> {
   const GroupView({super.key});
@@ -57,9 +16,6 @@ class GroupView extends GetView<GroupController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xfffafafa),
-
-      // 상단 AppBar
       appBar: AppBar(
         backgroundColor: const Color(0xfffafafa),
         elevation: 0,
@@ -72,54 +28,205 @@ class GroupView extends GetView<GroupController> {
         ),
         centerTitle: true,
       ),
+      backgroundColor: Color(0xfffafafa),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20),
+          child: Column(
+        children: [
+          Obx(() {
+            final groupName = controller.ranking.value.myMonitoringGroup;
+            final groupDescription =
+                controller.ranking.value.myMonitoringGroupDescription;
 
-      // 본문 영역
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-
-        // 전체 그룹 목록 및 선택 상태를 옵저빙
-        child: Obx(() {
-          final joinedGroups = controller.groups.where((g) => g.isActive).toList();
-          final selectedGroup = controller.selectedGroup.value;
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 상단 안내 텍스트
-              const Text(
-                "그룹을 선택해서\n모니터링하세요",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            return Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              decoration: BoxDecoration(
+                color: Color(0xffff8126),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x20000000),
+                    blurRadius: 10,
+                    offset: Offset(2, 2),
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-
-              // 그룹 리스트 영역
-              Expanded(
-                child: Obx(() {
-                  // 활성화된(가입된) 그룹 필터링
-                  final joinedGroups = controller.groups.where((g) => g.isActive).toList();
-                  final selectedGroup = controller.selectedGroup.value;
-
-                  return ListView.separated(
-                    itemCount: joinedGroups.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 16),
-                    itemBuilder: (context, index) {
-                      final group = joinedGroups[index];
-                      final isSelected = group.id == selectedGroup?.id;
-
-                      return GestureDetector(
-                        onTap: () => controller.selectGroup(group), // 선택 처리
-                        child: _buildGroupCard(group, isSelected: isSelected),
-                      );
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    groupName,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    groupDescription,
+                    style: TextStyle(fontSize: 15, color: Colors.white),
+                  ),
+                ],
+              ),
+            );
+          }),
+          SizedBox(height: 20),
+          Obx(() {
+            final rank = controller.ranking.value.myRank;
+            final name = controller.ranking.value.myName;
+            return Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x20000000),
+                    blurRadius: 10,
+                    offset: Offset(2, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Icon(HugeIcons.strokeRoundedSunglasses, size: 64),
+                  SizedBox(height: 10),
+                  Text(
+                    "$name님은 지금",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "$rank등 입니다",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      controller.fetchMockRanking();
                     },
-                  );
-                }),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      elevation: 0,
+                      backgroundColor: const Color(0xffFF8126),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          '새로 고침',
+                          style: TextStyle(color: Colors.white, fontSize: 15),
+                        ),
+                        const SizedBox(width: 10),
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedRefresh,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          );
-        }),
-      ),
+            );
+          }),
+          SizedBox(height: 20),
+          Obx(() {
+            // setting에서는 이거 쓰시면 됩니다.
+            final leaders =
+                controller.ranking.value.durationLeaders.take(3).toList();
+            final maxDuration = leaders
+                .map((e) => e.duration)
+                .reduce((a, b) => a > b ? a : b);
+            return Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x22000000),
+                    blurRadius: 10,
+                    offset: Offset(2, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '공부시간',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  SizedBox(height: 30),
+                  ...leaders
+                      .take(3)
+                      .map(
+                        (leader) =>
+                            buildDurationLeaderItem(leader, maxDuration),
+                      )
+                      .toList(),
+                ],
+              ),
+            );
+          }),
+          SizedBox(height: 20),
+          Obx(() {
+            final int maxCount =
+                controller.ranking.value.commitLeaders.first.commitCount;
 
-      // 하단 네비게이션 바
+            return Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x22000000),
+                    blurRadius: 10,
+                    offset: Offset(2, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '커밋 횟수',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16),
+                  buildCommitLeaderItem(
+                    leader: controller.ranking.value.commitLeaders[0],
+                    medalIcon: HugeIcons.strokeRoundedMedalFirstPlace,
+                    maxCommitCount: maxCount,
+                  ),
+                  buildCommitLeaderItem(
+                    leader: controller.ranking.value.commitLeaders[1],
+                    medalIcon: HugeIcons.strokeRoundedMedalSecondPlace,
+                    maxCommitCount: maxCount,
+                  ),
+                  buildCommitLeaderItem(
+                    leader: controller.ranking.value.commitLeaders[2],
+                    medalIcon: HugeIcons.strokeRoundedMedalThirdPlace,
+                    maxCommitCount: maxCount,
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      )),
       bottomNavigationBar: const BottomNavBar(),
 
       // 그룹 검색 버튼
@@ -136,60 +243,4 @@ class GroupView extends GetView<GroupController> {
     );
   }
 
-  // 그룹 카드 UI 컴포넌트
-  Widget _buildGroupCard(Group group, {required bool isSelected}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFFF8126) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x3F000000),
-            blurRadius: 10,
-            offset: Offset(2, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 그룹 이름
-          Text(
-            group.name,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : Colors.black,
-              height: 1.3, // 라인 높이 고정
-            ),
-          ),
-          const SizedBox(height: 5),
-
-          // 그룹 설명과 인원 상태
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                group.description,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isSelected ? Colors.white : Colors.grey,
-                  height: 1.3,
-                ),
-              ),
-              Text(
-                group.memberStatus,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isSelected ? Colors.white : Colors.grey,
-                  height: 1.3,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
