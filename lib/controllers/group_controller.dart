@@ -22,38 +22,72 @@ class GroupController extends GetxController {
     fetchGroups();
   }
 
+  // void fetchGroups() {
+  //   groups.value = [
+  //     Group(
+  //       id: '1',
+  //       name: '현장 프로젝트 2팀',
+  //       description: '테스트 그룹입니다.',
+  //       currentMembers: 49,
+  //       maxMembers: 50,
+  //       rules: [
+  //         '하루 커밋 횟수 7회 이하시 강퇴',
+  //         '랭킹 1등에게 Ing 쿠폰 제공',
+  //       ],
+  //       password: '1234',
+  //       isActive: true,
+  //     ),
+  //     ...List.generate(5, (i) {
+  //       return Group(
+  //         id: '${i + 2}',
+  //         name: '테스트 그룹입니다.',
+  //         description: '테스트 그룹입니다.',
+  //         currentMembers: 48,
+  //         maxMembers: 50,
+  //         rules: [
+  //           '하루 커밋 1회 이상 필수',
+  //           '랭킹 3등까지 혜택 제공',
+  //         ],
+  //         password: '0000',
+  //       );
+  //     }),
+  //   ];
+  //
+  //   // 기본 화면 - 그룹 전체 보이기
+  //   filteredGroups.value = groups;
+  // }
+
   void fetchGroups() {
-    groups.value = [
-      Group(
-        id: '1',
-        name: '현장 프로젝트 2팀',
-        description: '테스트 그룹입니다.',
-        currentMembers: 49,
-        maxMembers: 50,
-        rules: [
+    final dummyJsonList = [
+      {
+        'id': '1',
+        'name': '현장 프로젝트 2팀',
+        'description': '테스트 그룹입니다.',
+        'currentMembers': 49,
+        'maxMembers': 50,
+        'rules': [
           '하루 커밋 횟수 7회 이하시 강퇴',
           '랭킹 1등에게 Ing 쿠폰 제공',
         ],
-        password: '1234',
-        isActive: true,
-      ),
-      ...List.generate(5, (i) {
-        return Group(
-          id: '${i + 2}',
-          name: '테스트 그룹입니다.',
-          description: '테스트 그룹입니다.',
-          currentMembers: 48,
-          maxMembers: 50,
-          rules: [
-            '하루 커밋 1회 이상 필수',
-            '랭킹 3등까지 혜택 제공',
-          ],
-          password: '0000',
-        );
+        'password': '1234',
+        'isActive': true,
+      },
+      ...List.generate(5, (i) => {
+        'id': '${i + 2}',
+        'name': '테스트 그룹입니다.',
+        'description': '테스트 그룹입니다.',
+        'currentMembers': 48,
+        'maxMembers': 50,
+        'rules': [
+          '하루 커밋 1회 이상 필수',
+          '랭킹 3등까지 혜택 제공',
+        ],
+        'password': '0000',
+        'isActive': false,
       }),
     ];
 
-    // 기본 화면 - 그룹 전체 보이기
+    groups.value = dummyJsonList.map((json) => Group.fromJson(json)).toList();
     filteredGroups.value = groups;
   }
 
@@ -90,13 +124,13 @@ class GroupController extends GetxController {
       }
 
       if (existing.currentMembers < existing.maxMembers) {
-        final updated = existing.copyWith(
-          currentMembers: existing.currentMembers + 1,
-          isActive: true, //가입 상태 true로 변경
-        );
+        final updatedJson = existing.toJson()
+          ..update('currentMembers', (value) => value + 1)
+          ..update('isActive', (value) => true);
+
+        final updated = Group.fromJson(updatedJson);
         groups[index] = updated;
 
-        // filteredGroups도 동기화
         final fIndex = filteredGroups.indexWhere((g) => g.id == group.id);
         if (fIndex != -1) {
           filteredGroups[fIndex] = updated;
@@ -116,19 +150,20 @@ class GroupController extends GetxController {
     required List<String> rules,
     required String password,
   }) {
-    final newGroup = Group(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: name,
-      description: description,
-      maxMembers: maxMembers,
-      rules: rules,
-      password: password,
-      currentMembers: 1,
-      isActive: true,
-    );
+    final newGroupJson = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'name': name,
+      'description': description,
+      'currentMembers': 1,
+      'maxMembers': maxMembers,
+      'rules': rules,
+      'password': password,
+      'isActive': true,
+    };
 
+    final newGroup = Group.fromJson(newGroupJson);
     groups.insert(0, newGroup);
-    searchGroup(''); // 검색어 초기화 → 전체 리스트 재필터링
+    searchGroup('');
   }
 
 }
