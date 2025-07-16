@@ -11,8 +11,6 @@ class SettingView extends GetView<SettingController> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: const Color(0xfffafafa),
       body: Padding(
@@ -20,19 +18,51 @@ class SettingView extends GetView<SettingController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Obx(() => Text(
-              controller.username.value.isEmpty
-                  ? '이름 불러오는 중...'
-                  : controller.username.value,
-              style: GoogleFonts.audiowide(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            // 사용자 이름
+            Obx(
+              () => Text(
+                controller.username.value.isEmpty
+                    ? '이름 불러오는 중...'
+                    : controller.username.value,
+                style: GoogleFonts.audiowide(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            )),
+            ),
             const SizedBox(height: 20),
+
+            // 커밋 그래프 카드
             _buildCommitCard(controller),
-            const SizedBox(height: 20),
-            _buildSettingMenu(),
+            const SizedBox(height: 24),
+
+            // 랭킹 버튼
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x22000000),
+                    blurRadius: 8,
+                    offset: Offset(2, 2),
+                  ),
+                ],
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.leaderboard, color: Colors.black),
+                title: Text(
+                  '랭킹',
+                  style: GoogleFonts.audiowide(
+                    fontSize: 15,
+                    color: Colors.black,
+                  ),
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Get.toNamed(AppRoutes.ranking),
+              ),
+            ),
           ],
         ),
       ),
@@ -40,7 +70,7 @@ class SettingView extends GetView<SettingController> {
     );
   }
 
-  Widget _buildCommitCard(SettingController controller) {
+  Widget _buildCommitCard(SettingController c) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -55,108 +85,65 @@ class SettingView extends GetView<SettingController> {
           ),
         ],
       ),
-      child: Obx(() => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '이번 주 커밋',
-                style: GoogleFonts.audiowide(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+      child: Obx(() {
+        final data = c.weeklyCommits.value;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '이번 주 커밋',
+              style: GoogleFonts.audiowide(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 140,
-                child: BarChart(
-                  BarChartData(
-                    alignment: BarChartAlignment.spaceAround,
-                    titlesData: FlTitlesData(
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (value, meta) {
-                            const days = ['월', '화', '수', '목', '금', '토', '일'];
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                days[value.toInt() % 7],
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(showTitles: false),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 260, // 그래프 높이를 260으로 더 늘림
+              child: BarChart(
+                BarChartData(
+                  gridData: FlGridData(show: false),
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 32,
+                        getTitlesWidget: (value, meta) {
+                          const days = ['월', '화', '수', '목', '금', '토', '일'];
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              days[value.toInt() % 7],
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    borderData: FlBorderData(show: false),
-                    barGroups: controller.weeklyCommits.value
-                        .asMap()
-                        .entries
-                        .map(
-                          (entry) => BarChartGroupData(
-                            x: entry.key,
-                            barRods: [
-                              BarChartRodData(
-                                toY: entry.value.toDouble(),
-                                color: const Color(0xffff8126),
-                                width: 16,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ],
-                          ),
-                        )
-                        .toList(),
+                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
+                  barGroups: data.asMap().entries.map((entry) {
+                    return BarChartGroupData(
+                      x: entry.key,
+                      barRods: [
+                        BarChartRodData(
+                          toY: entry.value.toDouble(),
+                          width: 16,
+                          borderRadius: BorderRadius.circular(4),
+                          color: const Color(0xffff8126),
+                        ),
+                      ],
+                    );
+                  }).toList(),
                 ),
               ),
-            ],
-          )),
+            ),
+          ],
+        );
+      }),
     );
   }
-
-  Widget _buildSettingMenu() {
-    return Column(
-      children: [
-        _buildMenuTile('문의 하기', Icons.mail_outline, () {}),
-        _buildMenuTile('테마 설정', Icons.brightness_6, () {}),
-        _buildMenuTile('랭킹', Icons.leaderboard, () {
-          Get.toNamed(AppRoutes.ranking);
-        }),
-        _buildMenuTile('깃허브 계정 연동 확인', Icons.link, () {}),
-        _buildMenuTile('개발자 정보', Icons.info_outline,  () {}),
-      ],
-    );
-  }
-
- Widget _buildMenuTile(String title, IconData icon, VoidCallback onTap) {
-  return Container(
-    margin: const EdgeInsets.only(bottom: 10),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x22000000),
-          blurRadius: 8,
-          offset: Offset(2, 2),
-        ),
-      ],
-    ),
-    child: ListTile(
-      leading: Icon(icon, color: Colors.black),
-      title: Text(
-        title,
-        style: GoogleFonts.audiowide(
-          fontSize: 15,
-          color: Colors.black,
-        ),
-      ),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap, // ✅ 전달된 콜백 실행
-    ),
-  );
-}
 }
