@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../controllers/setting_controller.dart';
 import '../views/widgets/bottom_nav.dart';
 import '../routes/app_route.dart';
@@ -50,17 +51,38 @@ class SettingView extends GetView<SettingController> {
                   ),
                 ],
               ),
-              child: ListTile(
-                leading: const Icon(Icons.leaderboard, color: Colors.black),
-                title: Text(
-                  '랭킹',
-                  style: GoogleFonts.audiowide(
-                    fontSize: 15,
-                    color: Colors.black,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(
+                      HugeIcons.strokeRoundedRanking,
+                      color: Colors.black,
+                    ),
+                    title: Text('랭킹', style: TextStyle(fontSize: 15)),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Get.toNamed(AppRoutes.ranking),
                   ),
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Get.toNamed(AppRoutes.ranking),
+                  const Divider(color: Color(0xffd9d9d9), height: 2),
+                  ListTile(
+                    leading: const Icon(
+                      HugeIcons.strokeRoundedGithub,
+                      color: Colors.black,
+                    ),
+                    title: Text('깃허브 연동', style: TextStyle(fontSize: 15)),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Get.toNamed(AppRoutes.github),
+                  ),
+                  const Divider(color: Color(0xffd9d9d9), height: 2),
+                  ListTile(
+                    leading: const Icon(
+                      HugeIcons.strokeRoundedLogout01,
+                      color: Colors.black,
+                    ),
+                    title: Text('로그아웃', style: TextStyle(fontSize: 15)),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => controller.logout(),
+                  ),
+                ],
               ),
             ),
           ],
@@ -121,23 +143,30 @@ class SettingView extends GetView<SettingController> {
                         },
                       ),
                     ),
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                   ),
-                  barGroups: data.asMap().entries.map((entry) {
-                    return BarChartGroupData(
-                      x: entry.key,
-                      barRods: [
-                        BarChartRodData(
-                          toY: entry.value.toDouble(),
-                          width: 16,
-                          borderRadius: BorderRadius.circular(4),
-                          color: const Color(0xffff8126),
-                        ),
-                      ],
-                    );
-                  }).toList(),
+                  barGroups:
+                      data.asMap().entries.map((entry) {
+                        return BarChartGroupData(
+                          x: entry.key,
+                          barRods: [
+                            BarChartRodData(
+                              toY: entry.value.toDouble(),
+                              width: 16,
+                              borderRadius: BorderRadius.circular(4),
+                              color: const Color(0xffff8126),
+                            ),
+                          ],
+                        );
+                      }).toList(),
                 ),
               ),
             ),
