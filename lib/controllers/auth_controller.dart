@@ -16,8 +16,16 @@ class AuthController extends GetxController {
     checkAuth();
   }
 
+  // 로그인 텍스트 필드 컨트롤러
+
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  // 회원가입 텍스트 필드 컨트롤러
+  final signupUsernameController = TextEditingController();
+  final signupEmailController = TextEditingController();
+  final signupPasswordController = TextEditingController();
+  final signupPasswordCheckController = TextEditingController();
 
   RxBool isLoggedIn = false.obs;
 
@@ -57,6 +65,10 @@ class AuthController extends GetxController {
       return true;
     }
     return false;
+  }
+
+  Future<void> saveGithubToken(String githubToken) async {
+    await tokenService.saveGithubToken(githubToken);
   }
 
   Future<void> signUp() async {}

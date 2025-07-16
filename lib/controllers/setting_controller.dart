@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:gitpumta/controllers/auth_controller.dart';
 import 'package:gitpumta/routes/app_route.dart';
@@ -9,6 +10,8 @@ class SettingController extends GetxController {
   RxString username = "".obs;
   RxList<int> weeklyCommits = List.filled(7, 0).obs;
 
+  final githubTokenController = TextEditingController();
+
   Future<void> fetchMockUserData() async {
     await Future.delayed(Duration(seconds: 1));
     username.value = 'hoho';
@@ -18,5 +21,11 @@ class SettingController extends GetxController {
   Future<void> logout() async {
     await authController.logout();
     Get.offAllNamed(AppRoutes.login);
+  }
+
+  Future<void> saveGithubToken() async {
+    final githubToken = githubTokenController.text;
+    await authController.saveGithubToken(githubToken);
+    Get.back();
   }
 }

@@ -60,13 +60,42 @@ class LoginView extends GetView<AuthController> {
             SizedBox(height: 20),
             Row(
               children: [
-                ElevatedButton(
-                  onPressed: () => controller.login(),
-                  child: Text('로그인'),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => controller.login(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xffff8126),
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 3,
+                    ),
+                    child: Text(
+                      '로그인',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () => Get.toNamed(AppRoutes.signUp),
-                  child: Text('회원가입'),
+                SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Get.toNamed(AppRoutes.signUp),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      side: BorderSide(color: Color(0xffd9d9d9), width: 2),
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      '회원가입',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xffff8126)),
+                    ),
+                  ),
                 ),
               ],
             ),

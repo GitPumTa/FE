@@ -2,13 +2,7 @@ import 'package:get/get.dart';
 
 import '../middlewares/auth_middleware.dart';
 
-import 'package:gitpumta/bindings/ranking_binding.dart';
-import 'package:gitpumta/middlewares/auth_middleware.dart';
-import 'package:gitpumta/views/group_search_view.dart';
-import 'package:gitpumta/views/home_add_repo_view.dart';
-import 'package:gitpumta/views/setting_statics_view.dart';
-
-
+import '../views/setting_github_view.dart';
 import '../views/group_search_view.dart';
 import '../views/home_add_repo_view.dart';
 import '../views/group_view.dart';
@@ -20,6 +14,7 @@ import '../views/home_view.dart';
 import '../views/login_view.dart';
 import '../views/ranking_view.dart';
 
+import '../bindings/ranking_binding.dart';
 import '../bindings/group_binding.dart';
 import '../bindings/home_binding.dart';
 import '../bindings/setting_binding.dart';
@@ -34,6 +29,7 @@ class AppRoutes {
   static const String newRepo = '/new_repo';
   static const String settings = '/settings';
   static const String statics = '/statics';
+  static const String github = '/github';
   static const String splash = '/splash';
   static const String ranking = '/ranking';
 
@@ -75,12 +71,6 @@ class AppRoutes {
       transition: Transition.noTransition,
     ),
     GetPage(
-      name: statics,
-      binding: SettingBinding(),
-      page: () => SettingStaticsView(),
-      middlewares: [AuthMiddleware()],
-    ),
-    GetPage(
       name: newGroup,
       binding: GroupBinding(),
       page: () => GroupAddView(),
@@ -106,5 +96,11 @@ class AppRoutes {
     page: () => RankingView(),
     transition: Transition.noTransition,
   ),
+    GetPage(
+      name: github,
+      binding: SettingBinding(),
+      page: () => SettingGithubView(),
+      middlewares: [AuthMiddleware()],
+    ),
   ];
 }

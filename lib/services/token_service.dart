@@ -37,4 +37,8 @@ class TokenService extends GetxService {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
   }
+
+  Future<void> saveGithubToken(String githubToken) async {
+    await _storage.write(key: _gitTokenKey, value: githubToken);
+  }
 }
