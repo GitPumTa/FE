@@ -22,6 +22,8 @@ class GroupController extends GetxController {
   RxList<Group> filteredGroups = <Group>[].obs;
 
   Rx<Group?> selectedGroup = Rx<Group?>(null);
+  RxList<Group> myGroup = <Group>[].obs;
+
   Rx<Ranking> ranking = Ranking.empty().obs;
 
   Timer? _rankingTimer;
@@ -35,6 +37,7 @@ class GroupController extends GetxController {
     super.onInit();
     fetchGroups();
     fetchMockRanking();
+    fetchMyGroup();
   }
 
   void fetchGroups() {
@@ -45,30 +48,28 @@ class GroupController extends GetxController {
         'description': '테스트 그룹입니다.',
         'currentMembers': 49,
         'maxMembers': 50,
-        'rules': [
-          '하루 커밋 횟수 7회 이하시 강퇴',
-          '랭킹 1등에게 Ing 쿠폰 제공',
-        ],
+        'rules': ['하루 커밋 횟수 7회 이하시 강퇴', '랭킹 1등에게 Ing 쿠폰 제공'],
         'password': '1234',
         'isActive': true,
       },
-      ...List.generate(5, (i) => {
-        'id': '${i + 2}',
-        'name': '테스트 그룹입니다.',
-        'description': '테스트 그룹입니다.',
-        'currentMembers': 48,
-        'maxMembers': 50,
-        'rules': [
-          '하루 커밋 1회 이상 필수',
-          '랭킹 3등까지 혜택 제공',
-        ],
-        'password': '0000',
-        'isActive': false,
-      }),
+      ...List.generate(
+        5,
+        (i) => {
+          'id': '${i + 2}',
+          'name': '테스트 그룹입니다.',
+          'description': '테스트 그룹입니다.',
+          'currentMembers': 48,
+          'maxMembers': 50,
+          'rules': ['하루 커밋 1회 이상 필수', '랭킹 3등까지 혜택 제공'],
+          'password': '0000',
+          'isActive': false,
+        },
+      ),
     ];
 
     // 원본 전체 그룹 리스트 초기화
-    allGroups.value = dummyJsonList.map((json) => Group.fromJson(json)).toList();
+    allGroups.value =
+        dummyJsonList.map((json) => Group.fromJson(json)).toList();
 
     // 상태 반영용 그룹 리스트 복사
     groups.value = [...allGroups];
@@ -77,12 +78,45 @@ class GroupController extends GetxController {
     filteredGroups.value = allGroups.where((group) => !group.isActive).toList();
   }
 
+  Future<void> fetchMyGroup() async {
+    await Future.delayed(Duration(seconds: 1));
+    myGroup.value = [
+      Group(
+        id: "1",
+        name: "헬스 좋아하세요?",
+        description: "트레이너 xxx가 운영하는 깃품타입니다.",
+        currentMembers: 49,
+        maxMembers: 50,
+        rules: ["1. 회원간 친목 금지", "2. 회원간 티칭 금지", "3. 회원간 연애 금지"],
+        password: "1234",
+      ),
+      Group(
+        id: "2",
+        name: "C언어 스터디",
+        description: "description",
+        currentMembers: 49,
+        maxMembers: 50,
+        rules: ["1. C언어 개발을 위한 모임입니다.", "2. C언어 외 다른 언어는 삼가주세요", "3. printf()"],
+        password: "1234",
+      ),
+      Group(
+        id: "3",
+        name: "플러터 좋아하세요?",
+        description: "description",
+        currentMembers: 49,
+        maxMembers: 50,
+        rules: ["1. Dart언어 개발을 위한 모임입니다.", "2. 공부하기 싫어요", "3. 하지 마세요"],
+        password: "1234",
+      ),
+    ];
+  }
+
   void searchGroup(String keyword) {
     final query = keyword.trim();
-    filteredGroups.value = allGroups
-        .where((group) =>
-    !group.isActive && group.name.contains(query))
-        .toList();
+    filteredGroups.value =
+        allGroups
+            .where((group) => !group.isActive && group.name.contains(query))
+            .toList();
   }
 
   bool verifyGroupPassword(Group group, String inputPassword) {
@@ -105,9 +139,10 @@ class GroupController extends GetxController {
     }
 
     if (existing.currentMembers < existing.maxMembers) {
-      final updatedJson = existing.toJson()
-        ..update('currentMembers', (value) => value + 1)
-        ..update('isActive', (value) => true);
+      final updatedJson =
+          existing.toJson()
+            ..update('currentMembers', (value) => value + 1)
+            ..update('isActive', (value) => true);
 
       final updated = Group.fromJson(updatedJson);
       groups[index] = updated;
@@ -147,10 +182,9 @@ class GroupController extends GetxController {
     // 모든 리스트에 반영
     allGroups.insert(0, newGroup);
     groups.insert(0, newGroup);
-        // 필터된 리스트는 다시 검색해서 갱신
+    // 필터된 리스트는 다시 검색해서 갱신
     searchGroup('');
   }
-
 
   Future<void> fetchMockRanking() async {
     await Future.delayed(Duration(seconds: 1));
@@ -198,14 +232,14 @@ class GroupController extends GetxController {
     _rankingTimer = Timer.periodic(Duration(seconds: 1), (_) {
       final now = DateTime.now();
       final updatedLeaders =
-      ranking.value.durationLeaders.map((leader) {
-        if (leader.status == TimerStatus.running) {
-          final updatedDuration =
-              leader.duration + now.difference(leader.sendAt!);
-          return leader.copyWith(duration: updatedDuration, sendAt: now);
-        }
-        return leader;
-      }).toList();
+          ranking.value.durationLeaders.map((leader) {
+            if (leader.status == TimerStatus.running) {
+              final updatedDuration =
+                  leader.duration + now.difference(leader.sendAt!);
+              return leader.copyWith(duration: updatedDuration, sendAt: now);
+            }
+            return leader;
+          }).toList();
 
       ranking.value = ranking.value.copyWith(durationLeaders: updatedLeaders);
     });
