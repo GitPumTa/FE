@@ -21,10 +21,15 @@ class GroupController extends GetxController {
   // 화면 출력용 필터링된 리스트
   RxList<Group> filteredGroups = <Group>[].obs;
 
-  Rx<Group?> selectedGroup = Rx<Group?>(null);
+  Rx<Group?> selectedGroup = Rx<Group?>(null); // 실제 선택된 그룹
+  Rx<Group?> tempSelectedGroup = Rx<Group?>(null); // 팝업 내 임시 선택 그룹
+
   RxList<Group> myGroup = <Group>[].obs;
 
   Rx<Ranking> ranking = Ranking.empty().obs;
+
+  RxString searchText = ''.obs;
+  RxList<Group> filteredMyGroups = <Group>[].obs;
 
   Timer? _rankingTimer;
 
@@ -109,15 +114,27 @@ class GroupController extends GetxController {
         password: "1234",
       ),
     ];
+    searchMyGroup(''); // 전체 그룹 다 보이게 초기화
   }
 
   void searchGroup(String keyword) {
-    final query = keyword.trim();
-    filteredGroups.value =
-        allGroups
-            .where((group) => !group.isActive && group.name.contains(query))
-            .toList();
+    final query = keyword.trim().toLowerCase();
+
+    filteredGroups.value = allGroups
+        .where((group) => !group.isActive && group.name.toLowerCase().contains(query))
+        .toList();
   }
+
+
+  void searchMyGroup(String keyword) {
+    searchText.value = keyword;
+    final query = keyword.trim().toLowerCase(); // 소문자로 변환
+
+    filteredMyGroups.value = myGroup
+        .where((group) => group.name.toLowerCase().contains(query)) // 소문자 기준 비교
+        .toList();
+  }
+
 
   bool verifyGroupPassword(Group group, String inputPassword) {
     return group.password == inputPassword;
@@ -182,8 +199,11 @@ class GroupController extends GetxController {
     // 모든 리스트에 반영
     allGroups.insert(0, newGroup);
     groups.insert(0, newGroup);
-    // 필터된 리스트는 다시 검색해서 갱신
-    searchGroup('');
+    myGroup.insert(0, newGroup); // 내가 가입한 그룹에 반영
+    searchMyGroup(searchText.value); // 현재 검색어로 필터도 다시 적용
+
+    // 필요 시 selectedGroup 업데이트도 가능
+    selectedGroup.value = newGroup;
   }
 
   Future<void> fetchMockRanking() async {

@@ -31,61 +31,167 @@ class GroupView extends GetView<GroupController> {
         child: Column(
           children: [
             Obx(() {
-              final groupName = controller.ranking.value.myMonitoringGroup;
-              final groupDescription =
-                  controller.ranking.value.myMonitoringGroupDescription;
+              //final groupName = controller.ranking.value.myMonitoringGroup;
+              //final groupDescription =
+              //    controller.ranking.value.myMonitoringGroupDescription;
+              final groupName = controller.selectedGroup.value?.name ?? controller.ranking.value.myMonitoringGroup;
+              final groupDescription = controller.selectedGroup.value?.description ?? controller.ranking.value.myMonitoringGroupDescription;
 
               return GestureDetector(
                 onTap: () {
+                  controller.searchMyGroup('');
+                  controller.tempSelectedGroup.value = controller.selectedGroup.value;
+                  controller.selectedGroup.value = controller.selectedGroup.value;
                   Get.dialog(
                       Dialog(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Container(
-                          padding: const EdgeInsets.all(20),
-                          constraints: const BoxConstraints(
-                            maxHeight: 400, // 다이얼로그가 너무 커지지 않도록 제한
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xfffafafa),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: controller.myGroup.length,
-                            itemBuilder: (context, index) {
-                              final group = controller.myGroup[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  Get.back();
-                                  controller.selectGroup(group);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  child: Text(
-                                    group.name, // 또는 group.title 등 적절한 필드
-                                    style: const TextStyle(fontSize: 16),
+                        child: Obx(() {
+                          return Container(
+                            padding: const EdgeInsets.all(20),
+                            constraints: const BoxConstraints(maxHeight: 500),
+                            decoration: BoxDecoration(
+                              color: const Color(0xfffafafa),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // 검색창
+                                TextField(
+                                  onChanged: controller.searchMyGroup,
+                                  decoration: InputDecoration(
+                                    hintText: '그룹명을 입력하세요',
+                                    suffixIcon: const Icon(Icons.search),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                      borderSide: BorderSide.none,
+                                    ),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                      )
+                                const SizedBox(height: 20),
+
+                                // 그룹 리스트
+                                Expanded(
+                                  child: ListView.separated(
+                                    itemCount: controller.filteredMyGroups.length,
+                                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                    itemBuilder: (_, index) {
+                                      final group = controller.filteredMyGroups[index];
+                                      return Obx(() {
+                                        final isSelected = group.id == controller.tempSelectedGroup.value?.id;
+                                        return GestureDetector(
+                                          onTap: () => controller.tempSelectedGroup.value = group,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                            decoration: BoxDecoration(
+                                              color: isSelected ? const Color(0xffff8126) : Colors.white,
+                                              borderRadius: BorderRadius.circular(20),
+                                              boxShadow: const [
+                                                BoxShadow(color: Color(0x22000000), blurRadius: 6),
+                                              ],
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  group.name,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 18,
+                                                    color: isSelected ? Colors.white : Colors.black,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 5),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      group.description,
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: isSelected ? Colors.white : Colors.grey,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      group.memberStatus,
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: isSelected ? Colors.white : Colors.grey,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      });
+                                    },
+                                  ),
+                                ),
+
+                                const SizedBox(height: 20),
+
+                                // 하단 버튼
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.grey,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(vertical: 20),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        child: const Text('취소'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          controller.selectedGroup.value = controller.tempSelectedGroup.value;
+                                          Get.back();
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Color(0xffff8126),
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(vertical: 20),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        child: const Text('선택 완료'),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
+                          );
+                        }),
+                      ),
                   );
                 },
                 child: Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                   decoration: BoxDecoration(
-                    color: Color(0xffff8126),
+                    color: const Color(0xffff8126),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Color(0x20000000),
+                        color: const Color(0x20000000),
                         blurRadius: 10,
-                        offset: Offset(2, 2),
+                        offset: const Offset(2, 2),
                       ),
                     ],
                   ),
@@ -94,7 +200,7 @@ class GroupView extends GetView<GroupController> {
                     children: [
                       Text(
                         groupName,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -102,7 +208,7 @@ class GroupView extends GetView<GroupController> {
                       ),
                       Text(
                         groupDescription,
-                        style: TextStyle(fontSize: 15, color: Colors.white),
+                        style: const TextStyle(fontSize: 15, color: Colors.white),
                       ),
                     ],
                   ),
