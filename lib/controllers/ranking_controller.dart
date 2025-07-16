@@ -1,9 +1,11 @@
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../models/repo.dart'; // TimerStatus enum 포함
 import '../models/ranking.dart'; // Ranking, DurationLeader, CommitLeader
 
 class RankingController extends GetxController {
   Rx<Ranking> ranking = Ranking.empty().obs;
+  Rx<DateTime> selectedDate = DateTime.now().obs;
 
   String formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -34,4 +36,20 @@ class RankingController extends GetxController {
       myName: '',
     );
   }
+
+  String get formattedDate {
+    final formatter = DateFormat('M월 d일');
+    return formatter.format(selectedDate.value);
+  }
+
+  void decrementDate() {
+  selectedDate.value = selectedDate.value.subtract(Duration(days: 1));
+  // fetchRankingData(); // ← API 붙이면 여기에 호출
+  }
+
+  void incrementDate() {
+  selectedDate.value = selectedDate.value.add(Duration(days: 1));
+  // fetchRankingData(); // ← API 붙이면 여기에 호출
+  }
+
 }

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/ranking_controller.dart';
 import '../views/widgets/bottom_nav.dart';
+import '../models/ranking.dart';
 
 class RankingView extends GetView<RankingController> {
   const RankingView({super.key});
@@ -11,78 +12,118 @@ class RankingView extends GetView<RankingController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xfffafafa),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Get.back(),
-        ),
-        title: Text(
-          '현장프로젝트 2팀 랭킹',
-          style: GoogleFonts.audiowide(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              _buildHeader(),           // 뒤로가기 포함 헤더
+              const SizedBox(height: 12),
+              _buildDateControls(),
+              const SizedBox(height: 12),
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: _buildRankingCard(
+                        "공부시간",
+                        controller.ranking.value.durationLeaders,
+                        true,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: _buildRankingCard(
+                        "커밋횟수",
+                        controller.ranking.value.commitLeaders,
+                        false,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildDateSelector(),
-            const SizedBox(height: 20),
-            _buildRankingCard('공부시간', controller.ranking.value.durationLeaders, isDuration: true),
-            const SizedBox(height: 20),
-            _buildRankingCard('커밋횟수', controller.ranking.value.commitLeaders),
-          ],
         ),
       ),
       bottomNavigationBar: const BottomNavBar(),
     );
   }
 
-  Widget _buildDateSelector() {
+  Widget _buildHeader() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Icon(Icons.chevron_left, size: 32),
-        Row(
-          children: [
-            Text(
-              '7월 9일',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 5,
-                  ),
-                ],
-              ),
-              child: Row(
-                children: const [
-                  Text('일간', style: TextStyle(fontWeight: FontWeight.bold)),
-                  Icon(Icons.arrow_drop_down),
-                ],
-              ),
-            )
-          ],
+        IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Get.back(),
         ),
-        Icon(Icons.chevron_right, size: 32),
+        Expanded(
+          child: Center(
+            child: Obx(() {
+              final group = controller.ranking.value.myMonitoringGroup;
+              return Text(
+                '$group 랭킹',
+                style: GoogleFonts.audiowide(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            }),
+          ),
+        ),
+        const SizedBox(width: 48), // 뒤로가기 아이콘 크기만큼 공간 확보
       ],
     );
   }
 
-  Widget _buildRankingCard(String title, List<dynamic> leaders, {bool isDuration = false}) {
+  Widget _buildDateControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: controller.decrementDate,
+        ),
+        Obx(
+          () => Text(
+            controller.formattedDate,
+            style: GoogleFonts.audiowide(fontSize: 16),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.chevron_right),
+          onPressed: controller.incrementDate,
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(2, 2)),
+            ],
+          ),
+          child: Row(
+            children: const [
+              Text('일간', style: TextStyle(fontWeight: FontWeight.bold)),
+              Icon(Icons.arrow_drop_down),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRankingCard(String title, List<dynamic> leaders, bool isDuration) {
+    final maxValue = isDuration
+        ? (leaders as List<DurationLeader>)
+            .map((e) => e.duration.inSeconds)
+            .fold<int>(0, (prev, curr) => curr > prev ? curr : prev)
+        : (leaders as List<CommitLeader>)
+            .map((e) => e.commitCount)
+            .fold<int>(0, (prev, curr) => curr > prev ? curr : prev);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -90,11 +131,7 @@ class RankingView extends GetView<RankingController> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(
-            color: Color(0x22000000),
-            blurRadius: 10,
-            offset: Offset(2, 2),
-          ),
+          BoxShadow(color: Color(0x22000000), blurRadius: 10, offset: Offset(2, 2)),
         ],
       ),
       child: Column(
@@ -102,75 +139,55 @@ class RankingView extends GetView<RankingController> {
         children: [
           Text(
             title,
-            style: GoogleFonts.audiowide(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: GoogleFonts.audiowide(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          for (var leader in leaders.take(3))
-            _buildLeaderTile(leader, isDuration),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLeaderTile(dynamic leader, bool isDuration) {
-    final index = leader.rank;
-    final barColor = index == 1 ? Color(0xffff8126) : Colors.grey.shade400;
-    final maxVal = isDuration
-        ? controller.ranking.value.durationLeaders.first.duration.inSeconds
-        : controller.ranking.value.commitLeaders.first.commitCount;
-    final val = isDuration
-        ? leader.duration.inSeconds.toDouble()
-        : leader.commitCount.toDouble();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
-        children: [
-          Text('${leader.rank}', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(width: 8),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  leader.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Stack(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: leaders.take(3).map((leader) {
+                final name = isDuration
+                    ? (leader as DurationLeader).name
+                    : (leader as CommitLeader).name;
+                final value = isDuration
+                    ? (leader as DurationLeader).duration.inSeconds
+                    : (leader as CommitLeader).commitCount;
+                final displayValue = isDuration
+                    ? controller.formatDuration(Duration(seconds: value))
+                    : '$value번';
+                final isTop = leader.rank == 1;
+
+                return Row(
                   children: [
-                    Container(
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(4),
+                    Text('${leader.rank}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name, style: const TextStyle(fontSize: 14)),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: maxValue == 0 ? 0 : value / maxValue,
+                              minHeight: 8,
+                              backgroundColor: Colors.grey[300],
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                isTop ? const Color(0xffff8126) : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    FractionallySizedBox(
-                      widthFactor: val / (maxVal == 0 ? 1 : maxVal),
-                      child: Container(
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: barColor,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
+                    const SizedBox(width: 12),
+                    Text(displayValue, style: const TextStyle(fontWeight: FontWeight.bold)),
                   ],
-                )
-              ],
+                );
+              }).toList(),
             ),
           ),
-          const SizedBox(width: 8),
-          Text(
-            isDuration
-                ? controller.formatDuration(leader.duration)
-                : '${leader.commitCount}번',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          )
         ],
       ),
     );
