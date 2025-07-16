@@ -87,7 +87,7 @@ class GroupSearchView extends GetView<GroupController> {
               onChanged: controller.searchGroup,
               decoration: InputDecoration(
                 hintText: '그룹명을 입력하세요',
-                prefixIcon: const Icon(Icons.search),
+                suffixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -219,7 +219,7 @@ class GroupSearchView extends GetView<GroupController> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.grey,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 20),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -256,7 +256,7 @@ class GroupSearchView extends GetView<GroupController> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: group.isActive ? Colors.grey.shade400 : const Color(0xffff8126),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 20),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
