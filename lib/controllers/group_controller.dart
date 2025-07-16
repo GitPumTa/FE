@@ -22,6 +22,8 @@ class GroupController extends GetxController {
   RxList<Group> filteredGroups = <Group>[].obs;
 
   Rx<Group?> selectedGroup = Rx<Group?>(null);
+  RxList<Group> myGroup = <Group>[].obs;
+
   Rx<Ranking> ranking = Ranking.empty().obs;
 
   Timer? _rankingTimer;
@@ -75,6 +77,15 @@ class GroupController extends GetxController {
 
     // 가입하지 않은 그룹만 필터링
     filteredGroups.value = allGroups.where((group) => !group.isActive).toList();
+  }
+
+  Future<void> fetchMyGroup() async {
+    await Future.delayed(Duration(seconds: 1));
+    myGroup.value = [
+      Group(id: "1", name: "테스트 그룹입니다.", description: "description", currentMembers: 49, maxMembers: 50, rules: ["1. 똥싸지마세요", "2. 토하지 마세요", "3. 오줌싸지 마세요."], password: "1234"),
+      Group(id: "2", name: "테스트 그룹입니다.", description: "description", currentMembers: 49, maxMembers: 50, rules: ["1. 똥싸지마세요", "2. 토하지 마세요", "3. 오줌싸지 마세요."], password: "1234"),
+      Group(id: "3", name: "테스트 그룹입니다.", description: "description", currentMembers: 49, maxMembers: 50, rules: ["1. 똥싸지마세요", "2. 토하지 마세요", "3. 오줌싸지 마세요."], password: "1234"),
+    ];
   }
 
   void searchGroup(String keyword) {
