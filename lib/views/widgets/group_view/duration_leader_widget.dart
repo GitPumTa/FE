@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import '../../models/ranking.dart';
-import '../../models/repo.dart';
+import '../../../models/ranking.dart';
+import '../../../models/repo.dart';
 
 
 Widget buildDurationLeaderItem(DurationLeader leader, Duration maxDuration) {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/ranking.dart';
+import '../../../models/ranking.dart';
 
 Widget buildCommitLeaderItem({
   required CommitLeader leader,
