@@ -28,7 +28,6 @@ class TokenService extends GetxService {
     final username = await _storage.read(key: _usernameKey);
 
     if (gitToken != null && accessToken != null && refreshToken != null && username != null) {
-      print("we call token service: $gitToken");
       return Token(gitToken, accessToken, refreshToken, username);
     } else {
       print('토큰이 없습니다.');
@@ -52,5 +51,10 @@ class TokenService extends GetxService {
   Future<String> getUsername() async {
     final username = await _storage.read(key: _usernameKey);
     return username ?? '';
+  }
+
+  Future<String> getGithubToken() async {
+    final gitToken = await _storage.read(key: _gitTokenKey);
+    return gitToken ?? '';
   }
 }
