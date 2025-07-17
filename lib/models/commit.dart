@@ -14,4 +14,11 @@ class Commit {
   factory Commit.empty() {
     return Commit(date: DateTime.now(), message: '');
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'message': message,
+      'time': date.toIso8601String(), // 날짜 형식 문자열로 직렬화
+    };
+  }
 }

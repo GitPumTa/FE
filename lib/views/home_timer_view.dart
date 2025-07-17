@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../controllers/home_controller.dart';
+import '../models/commit.dart';
 import '../routes/app_route.dart';
 
 class HomeTimerView extends GetView<HomeController> {
@@ -164,47 +165,80 @@ class HomeTimerView extends GetView<HomeController> {
               ),
             );
           }),
-          SizedBox(height: 20),
+          SizedBox(height: 5),
           Obx(() {
             final commits = controller.commits;
-            return Container(
-              margin: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x22000000),
-                    blurRadius: 10,
-                    offset: Offset(2, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    '${commits.length}개의 커밋',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(onPressed: () => controller.fetchRowCommit(controller.activeRepoAddress.value!), icon: Icon(HugeIcons.strokeRoundedRefresh)),
-                  SizedBox(height: 10),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: commits.length,
-                    itemBuilder: (context, index) {
-                      final commit = commits[index];
-                      return ListTile(
-                        title: Text(controller.shortenText(commit.message, 50)),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            );
+            if (commits.isEmpty) {
+              return const SizedBox.shrink();
+            } else {
+              return Container(
+                margin: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x22000000),
+                      blurRadius: 10,
+                      offset: Offset(2, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                        padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 5),
+                        child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${commits.length}개의 커밋',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed:
+                              () => controller.fetchRowCommit(
+                                controller.activeRepoAddress.value!,
+                              ),
+                          icon: Icon(HugeIcons.strokeRoundedRefresh),
+                        ),
+                      ],
+                    )),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: commits.length,
+                      itemBuilder: (context, index) {
+                        final commit = commits[index];
+                        return _buildCommit(commit);
+                      },
+                    ),
+                    SizedBox(height: 20,)
+                  ],
+                ),
+              );
+            }
           }),
         ],
       ),
+    );
+  }
+
+  Widget _buildCommit(Commit commit) {
+    final message = controller.shortenText(commit.message, 50);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(color: Color(0xffd9d9d9), thickness: 1),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            child: Text(
+          message,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        )),
+      ],
     );
   }
 
