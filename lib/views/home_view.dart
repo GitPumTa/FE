@@ -88,9 +88,6 @@ class HomeView extends GetView<HomeController> {
             Obx(() {
               switch (controller.selected.value) {
                 case TabType.timer:
-                  if (controller.repos.isEmpty) {
-                    return Center(child: CircularProgressIndicator(),);
-                  }
                   return HomeTimerView();
                 case TabType.group:
                   return Placeholder();

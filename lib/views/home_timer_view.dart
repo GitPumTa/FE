@@ -112,7 +112,7 @@ class HomeTimerView extends GetView<HomeController> {
           }),
           SizedBox(height: 20),
           Obx(
-            () => ListView.builder(
+            () => controller.repos.isEmpty ? SizedBox.shrink() : ListView.builder(
               shrinkWrap: true,
               itemCount: controller.repos.length,
               itemBuilder: (context, index) {
