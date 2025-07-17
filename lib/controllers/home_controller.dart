@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
@@ -87,7 +88,8 @@ class HomeController extends GetxController {
     final token = await tokenService.getToken();
 
     final response = await http.get(
-      Uri.parse('http://15.164.49.227:8080/main?account_id=${token.username}'),
+      // Uri.parse('http://15.164.49.227:8080/main?account_id=${token.username}'),
+      Uri.parse('http://15.164.49.227:8080/planner/list'),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -108,16 +110,30 @@ class HomeController extends GetxController {
   Future<void> makeNewRepo() async {
     // repoTitleController, repoDescriptionController, repoAddressController 내용을 가지고 fetch 작업을 할거임.
     await Future.delayed(Duration(seconds: 1));
-    final repoTitle = repoTitleController.text.trim();
-    final repoDescription = repoDescriptionController.text.trim();
-    final repoAddress = repoAddressController.text.trim();
-    if (repoTitle.isEmpty || repoDescription.isEmpty || repoAddress.isEmpty) {
+    final repoTitle = repoTitleController.text;
+    final repoDescription = repoDescriptionController.text;
+    final repoAddress = repoAddressController.text;
+    final username = await tokenService.getUsername();
+    print({
+      'user_id': username,
+      'name': repoTitle,
+      'description': repoDescription,
+      'repository_link': repoAddress,
+    });
+    if (repoTitle.isNotEmpty && repoDescription.isNotEmpty && repoAddress.isNotEmpty && gitAddressApproved.value) {
       final response = await http.post(
-        Uri.parse('http://15.164.49.227:8080/main'),
+        Uri.parse('http://15.164.49.227:8080/planner/create'),
         headers: {
           'Content-Type': 'application/json',
         },
+        body: jsonEncode({
+          'user_id': username,
+          'name': repoTitle,
+          'description': repoDescription,
+          'repository_link': repoAddress,
+        })
       );
+      print("${response.statusCode} ${response.body}");
       Get.toNamed(AppRoutes.home);
       return;
     }

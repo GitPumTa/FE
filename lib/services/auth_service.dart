@@ -13,25 +13,29 @@ class AuthService extends GetxService {
     final request = await http.post(
       Uri.parse('http://15.164.49.227:8080/user/login'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'accountId': email,
-        'password': password,
-      }),
+      body: jsonEncode({'accountId': email, 'password': password}),
     );
-    print("request.statusCode: ${request.statusCode} request.body: ${request.body}");
+    print(
+      "request.statusCode: ${request.statusCode} request.body: ${request.body}",
+    );
     if (request.statusCode == 200) {
       print(request.body);
       final userId = json.decode(request.body)['id'];
       final token = Token.testLogin(userId);
-
-      print('login success');
-      return token;
+      if (userId == '') {
+        print('login fail');
+        return Token.empty();
+      } else {
+        print('login success');
+        return token;
+      }
     } else {
       print('login fail');
       return Token.empty();
       // throw Exception('Failed to login');
     }
   }
+
   Future<bool> checkAuth(Token token) async {
     return !token.isEmpty;
   }

@@ -48,7 +48,8 @@ class AuthController extends GetxController {
     final email = emailController.text;
     final password = passwordController.text;
     final token = await authService.login(email, password);
-    if (token.isEmpty) {
+    final isAuth = await authService.checkAuth(token);
+    if (!isAuth) {
       return;
     }
     else{
