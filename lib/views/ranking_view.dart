@@ -8,7 +8,6 @@ import '../views/widgets/bottom_nav.dart';
 class RankingView extends GetView<RankingController> {
   RankingView({super.key});
 
-  // 날짜 버튼의 위치를 구하기 위한 GlobalKey
   final GlobalKey _dateKey = GlobalKey();
 
   @override
@@ -72,7 +71,7 @@ class RankingView extends GetView<RankingController> {
             ),
           ),
         ),
-        const SizedBox(width: 48), // IconButton 너비만큼 여백
+        const SizedBox(width: 48),
       ],
     );
   }
@@ -117,8 +116,8 @@ class RankingView extends GetView<RankingController> {
     );
   }
 
- void _showCalendarPopup(BuildContext context) async {
- final renderBox = _dateKey.currentContext!.findRenderObject() as RenderBox;
+  Future<void> _showCalendarPopup(BuildContext context) async {
+    final renderBox = _dateKey.currentContext!.findRenderObject() as RenderBox;
     final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     final size = renderBox.size;
     final offset = renderBox.localToGlobal(Offset.zero, ancestor: overlay);
@@ -133,80 +132,81 @@ class RankingView extends GetView<RankingController> {
       overlay.size.height - top,
     );
 
- await showMenu<void>(
-    context: context,
-    position: position,
-    color: Colors.transparent,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    elevation: 0,
-    items: [
-      PopupMenuItem<void>(
-        padding: EdgeInsets.zero,
-        child: Card(
-          color: Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 4,
-          margin: const EdgeInsets.all(4),
-          child: SizedBox(
-            width: menuWidth,
-            child: Theme(
-              data: Theme.of(context).copyWith(
-                datePickerTheme: DatePickerThemeData(
-                   dayStyle: GoogleFonts.audiowide(
-                    fontSize: 14,
-                    color: Colors.black,
-                  ),
-                   todayForegroundColor: MaterialStateProperty.all(Colors.white),
-                   weekdayStyle: GoogleFonts.audiowide(
-                    fontSize: 12,
-                    color: Colors.black54,
-                  ),
-                   headerHeadlineStyle: GoogleFonts.audiowide(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+    await showMenu<void>(
+      context: context,
+      position: position,
+      color: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      items: [
+        PopupMenuItem<void>(
+          padding: EdgeInsets.zero,
+          child: Card(
+            color: Colors.white,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 4,
+            margin: const EdgeInsets.all(4),
+            child: SizedBox(
+              width: menuWidth,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  canvasColor: Colors.white,
+                  cardColor: Colors.white,
+                  colorScheme: Theme.of(context)
+                      .colorScheme
+                      .copyWith(primary: const Color(0xFFFF8126)),
+                  datePickerTheme: DatePickerThemeData(
+                    headerHeadlineStyle: GoogleFonts.audiowide(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    weekdayStyle: GoogleFonts.audiowide(
+                      fontSize: 12,
+                      color: Colors.black54,
+                    ),
+                    dayStyle: GoogleFonts.audiowide(
+                      fontSize: 14,
+                    ),
+                    // dayStyle.color is ignored; use dayForegroundColor:
+                    dayForegroundColor:
+                        MaterialStateProperty.resolveWith((states) {
+                      if (states.contains(MaterialState.selected)) {
+                        return Colors.white;
+                      }
+                      return Colors.black;
+                    }),
+                    todayForegroundColor:
+                        MaterialStateProperty.all(Colors.black),
                   ),
                 ),
-                canvasColor: Colors.white,
-                cardColor: Colors.white,
-                colorScheme: Theme.of(context).colorScheme.copyWith(
-                      primary: const Color(0xFFFF8126),
-                      onPrimary: Colors.white,
-                      background: Colors.white,
-                      surface: Colors.white,
-                      onSurface: Colors.black,
-                    ),
-              ),
-              child: CalendarDatePicker(
-                initialDate: controller.selectedDate.value,
-                firstDate: DateTime(2020),
-                lastDate: DateTime.now(),
-                onDateChanged: (picked) {
-                  controller.selectedDate.value = picked;
-                  Navigator.of(context).pop();
-                },
+                child: CalendarDatePicker(
+                  initialDate: controller.selectedDate.value,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime.now(),
+                  onDateChanged: (picked) {
+                    controller.selectedDate.value = picked;
+                    Navigator.of(context).pop();
+                  },
+                ),
               ),
             ),
           ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
+
   Widget _buildRankingCard(
-    String title,
-    List<dynamic> leaders,
-    bool isDuration,
-  ) {
-    final maxValue =
-        isDuration
-            ? (leaders as List<DurationLeader>)
-                .map((e) => e.duration.inSeconds)
-                .fold<int>(0, (prev, curr) => curr > prev ? curr : prev)
-            : (leaders as List<CommitLeader>)
-                .map((e) => e.commitCount)
-                .fold<int>(0, (prev, curr) => curr > prev ? curr : prev);
+      String title, List<dynamic> leaders, bool isDuration) {
+    final maxValue = isDuration
+        ? (leaders as List<DurationLeader>)
+            .map((e) => e.duration.inSeconds)
+            .fold<int>(0, (p, c) => c > p ? c : p)
+        : (leaders as List<CommitLeader>)
+            .map((e) => e.commitCount)
+            .fold<int>(0, (p, c) => c > p ? c : p);
 
     return Container(
       width: double.infinity,
@@ -216,81 +216,73 @@ class RankingView extends GetView<RankingController> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x22000000),
-            blurRadius: 10,
-            offset: Offset(2, 2),
-          ),
+              color: Color(0x22000000), blurRadius: 10, offset: Offset(2, 2)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.audiowide(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text(title,
+              style: GoogleFonts.audiowide(
+                  fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children:
-                  leaders.take(3).map((leader) {
-                    final name =
-                        isDuration
-                            ? (leader as DurationLeader).name
-                            : (leader as CommitLeader).name;
-                    final value =
-                        isDuration
-                            ? (leader as DurationLeader).duration.inSeconds
-                            : (leader as CommitLeader).commitCount;
-                    final displayValue =
-                        isDuration
-                            ? controller.formatDuration(
-                              Duration(seconds: value),
-                            )
-                            : '$value번';
-                    final isTop = leader.rank == 1;
+              children: leaders.take(3).map((leader) {
+                final name = isDuration
+                    ? (leader as DurationLeader).name
+                    : (leader as CommitLeader).name;
+                final value = isDuration
+                    ? (leader as DurationLeader).duration.inSeconds
+                    : (leader as CommitLeader).commitCount;
+                final displayValue = isDuration
+                    ? controller.formatDuration(Duration(seconds: value))
+                    : '$value번';
+                final isTop = leader.rank == 1;
 
-                    return Row(
-                      children: [
-                        Text(
-                          '${leader.rank}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(name, style: const TextStyle(fontSize: 14)),
-                              const SizedBox(height: 4),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: LinearProgressIndicator(
-                                  value: maxValue == 0 ? 0 : value / maxValue,
-                                  minHeight: 8,
-                                  backgroundColor: Colors.grey[300],
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    isTop
-                                        ? const Color(0xffff8126)
-                                        : Colors.grey,
-                                  ),
-                                ),
+                return Row(
+                  children: [
+                    Text('${leader.rank}',
+                        style:
+                            const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name,
+                              style:
+                                  const TextStyle(fontSize: 14)),
+                          const SizedBox(height: 4),
+                          ClipRRect(
+                            borderRadius:
+                                BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: maxValue == 0
+                                  ? 0
+                                  : value / maxValue,
+                              minHeight: 8,
+                              backgroundColor:
+                                  Colors.grey[300],
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(
+                                isTop
+                                    ? const Color(0xffff8126)
+                                    : Colors.grey,
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          displayValue,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    );
-                  }).toList(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(displayValue,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold)),
+                  ],
+                );
+              }).toList(),
             ),
           ),
         ],
