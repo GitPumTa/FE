@@ -254,7 +254,7 @@ class GroupView extends GetView<GroupController> {
                     SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () {
-                        controller.fetchMockRanking();
+                        controller.fetchGroupRanking();
                       },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
@@ -292,50 +292,27 @@ class GroupView extends GetView<GroupController> {
             }),
             SizedBox(height: 20),
             Obx(() {
-              final leaders =
-                  controller.ranking.value.durationLeaders.take(3).toList();
-              final maxDuration = leaders
-                  .map((e) => e.duration)
-                  .reduce((a, b) => a > b ? a : b);
-              return Container(
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x22000000),
-                      blurRadius: 10,
-                      offset: Offset(2, 2),
-                    ),
-                  ],
-                ),
-                child:  Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '공부시간',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+              final leaders = controller.ranking.value.durationLeaders.take(3).toList();
+
+              if (leaders.isEmpty) {
+                return Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x22000000),
+                        blurRadius: 10,
+                        offset: Offset(2, 2),
                       ),
-                    ),
-                    SizedBox(height: 30),
-                    ...leaders
-                        .take(3)
-                        .map(
-                          (leader) =>
-                              buildDurationLeaderItem(leader, maxDuration),
-                        )
-                        .toList(),
-                  ],
-                ),
-              );
-            }),
-            SizedBox(height: 20),
-            Obx(() {
-              final int maxCount =
-                  controller.ranking.value.commitLeaders.first.commitCount;
+                    ],
+                  ),
+                  child: const Text('아직 공부시간 랭킹 데이터가 없습니다.'),
+                );
+              }
+
+              final maxDuration = leaders.map((e) => e.duration).reduce((a, b) => a > b ? a : b);
 
               return Container(
                 padding: EdgeInsets.all(20),
@@ -353,7 +330,61 @@ class GroupView extends GetView<GroupController> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
+                      '공부시간',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    ...leaders.map((leader) => buildDurationLeaderItem(leader, maxDuration)).toList(),
+                  ],
+                ),
+              );
+            })
+            ,
+            SizedBox(height: 20),
+            Obx(() {
+              final commitLeaders = controller.ranking.value.commitLeaders;
+
+              if (commitLeaders.length < 3) {
+                return Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x22000000),
+                        blurRadius: 10,
+                        offset: Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Text('아직 커밋 랭킹 데이터가 없습니다.'),
+                );
+              }
+
+              final int maxCount = commitLeaders.first.commitCount;
+
+              return Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x22000000),
+                      blurRadius: 10,
+                      offset: Offset(2, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
                       '커밋 횟수',
                       style: TextStyle(
                         fontSize: 16,
@@ -362,24 +393,25 @@ class GroupView extends GetView<GroupController> {
                     ),
                     SizedBox(height: 16),
                     buildCommitLeaderItem(
-                      leader: controller.ranking.value.commitLeaders[0],
+                      leader: commitLeaders[0],
                       medalIcon: HugeIcons.strokeRoundedMedalFirstPlace,
                       maxCommitCount: maxCount,
                     ),
                     buildCommitLeaderItem(
-                      leader: controller.ranking.value.commitLeaders[1],
+                      leader: commitLeaders[1],
                       medalIcon: HugeIcons.strokeRoundedMedalSecondPlace,
                       maxCommitCount: maxCount,
                     ),
                     buildCommitLeaderItem(
-                      leader: controller.ranking.value.commitLeaders[2],
+                      leader: commitLeaders[2],
                       medalIcon: HugeIcons.strokeRoundedMedalThirdPlace,
                       maxCommitCount: maxCount,
                     ),
                   ],
                 ),
               );
-            }),
+            })
+            ,
           ],
         ),
       ),

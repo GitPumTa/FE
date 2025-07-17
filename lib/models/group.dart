@@ -24,13 +24,14 @@ class Group {
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      currentMembers: json['currentMembers'] ?? 0,
-      maxMembers: json['maxMembers'] ?? 0,
+      currentMembers: json['memberCnt'] ?? 0,
+      maxMembers: json['capacity'] ?? 0,
       rules: List<String>.from(json['rules'] ?? []),
       password: json['password'] ?? '',
       isActive: json['isActive'] ?? false,
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {

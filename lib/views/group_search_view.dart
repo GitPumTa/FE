@@ -231,28 +231,19 @@ class GroupSearchView extends GetView<GroupController> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: group.isActive
-                            ? null  // 이미 가입한 그룹은 비활성화
-                            : () {
+                            ? null
+                            : () async {
                           final password = passwordController.text;
-                          final isValid = controller.verifyGroupPassword(group, password);
 
-                          if (isValid) {
-                            if (group.currentMembers >= group.maxMembers) {
-                              Get.snackbar('가입 실패', '정원이 초과된 그룹입니다',
-                                  snackPosition: SnackPosition.BOTTOM);
-                            } else {
-                              controller.joinGroup(group);
-                              Get.back();
-                              Get.snackbar('가입 성공', '${group.name}에 가입되었습니다!',
-                                  snackPosition: SnackPosition.BOTTOM);
-                            }
-                          } else {
-                            Get.snackbar('오류', '비밀번호가 올바르지 않습니다',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.redAccent,
-                                colorText: Colors.white);
+                          if (group.currentMembers >= group.maxMembers) {
+                            Get.snackbar('가입 실패', '정원이 초과된 그룹입니다',
+                                snackPosition: SnackPosition.BOTTOM);
+                            return;
                           }
+
+                          await controller.joinGroup(group, password);
                         },
+
                         style: ElevatedButton.styleFrom(
                           backgroundColor: group.isActive ? Colors.grey.shade400 : const Color(0xffff8126),
                           foregroundColor: Colors.white,
