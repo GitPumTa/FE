@@ -348,7 +348,7 @@ class GroupView extends GetView<GroupController> {
             Obx(() {
               final commitLeaders = controller.ranking.value.commitLeaders;
 
-              if (commitLeaders.length < 3) {
+              if (commitLeaders.isEmpty) {
                 return Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -367,6 +367,11 @@ class GroupView extends GetView<GroupController> {
               }
 
               final int maxCount = commitLeaders.first.commitCount;
+              final List<IconData> medalIcons = [
+                HugeIcons.strokeRoundedMedalFirstPlace,
+                HugeIcons.strokeRoundedMedalSecondPlace,
+                HugeIcons.strokeRoundedMedalThirdPlace,
+              ];
 
               return Container(
                 padding: EdgeInsets.all(20),
@@ -392,25 +397,21 @@ class GroupView extends GetView<GroupController> {
                       ),
                     ),
                     SizedBox(height: 16),
-                    buildCommitLeaderItem(
-                      leader: commitLeaders[0],
-                      medalIcon: HugeIcons.strokeRoundedMedalFirstPlace,
-                      maxCommitCount: maxCount,
-                    ),
-                    buildCommitLeaderItem(
-                      leader: commitLeaders[1],
-                      medalIcon: HugeIcons.strokeRoundedMedalSecondPlace,
-                      maxCommitCount: maxCount,
-                    ),
-                    buildCommitLeaderItem(
-                      leader: commitLeaders[2],
-                      medalIcon: HugeIcons.strokeRoundedMedalThirdPlace,
-                      maxCommitCount: maxCount,
+
+                    // 최대 3명까지만 출력
+                    ...List.generate(
+                      commitLeaders.length > 3 ? 3 : commitLeaders.length,
+                          (index) => buildCommitLeaderItem(
+                        leader: commitLeaders[index],
+                        medalIcon: medalIcons[index],
+                        maxCommitCount: maxCount,
+                      ),
                     ),
                   ],
                 ),
               );
             })
+
             ,
           ],
         ),

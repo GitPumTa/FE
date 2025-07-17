@@ -144,7 +144,7 @@ class GroupService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-
+      print(data);
       return Ranking(
         myName: data['my_name'],
         myRank: data['my_rank'],

@@ -144,7 +144,7 @@ class CommitLeader {
   factory CommitLeader.fromJson(Map<String, dynamic> json) {
     return CommitLeader(
       name: json['name'] ?? '',
-      commitCount: json['commit_count'] ?? 0,
+      commitCount: json['commitCount'] ?? 0,
       rank: json['rank'] ?? 0,
     );
   }
