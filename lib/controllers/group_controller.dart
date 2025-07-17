@@ -62,9 +62,9 @@ class GroupController extends GetxController {
       final groupsFromApi = await groupService.fetchGroups(userId);
 
       final updated =
-          groupsFromApi
-              .map((group) => group.copyWith(isActive: false))
-              .toList();
+      groupsFromApi
+          .map((group) => group.copyWith(isActive: false))
+          .toList();
       allGroups.value = updated;
       groups.value = [...updated];
 
@@ -108,9 +108,9 @@ class GroupController extends GetxController {
         allGroups
             .where(
               (group) =>
-                  group.name.toLowerCase().contains(query) &&
-                  !myGroupIds.contains(group.id),
-            ) // 내가 가입한 그룹은 제외
+          group.name.toLowerCase().contains(query) &&
+              !myGroupIds.contains(group.id),
+        ) // 내가 가입한 그룹은 제외
             .toList();
   }
 
@@ -122,7 +122,7 @@ class GroupController extends GetxController {
         myGroup
             .where(
               (group) => group.name.toLowerCase().contains(query),
-            ) // 소문자 기준 비교
+        ) // 소문자 기준 비교
             .toList();
   }
 
@@ -193,6 +193,147 @@ class GroupController extends GetxController {
       );
     }
   }
+
+  void showGroupDetailDialog(BuildContext context, String groupId) async {
+    final TextEditingController passwordController = TextEditingController();
+
+    try {
+      final group = await groupService.fetchGroupDetail(groupId); // 최신 정보 API 호출
+
+      showDialog(
+        context: context,
+        builder: (_) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    group.name,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '그룹 규칙',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: group.rules
+                          .map((rule) => Text('• $rule', style: const TextStyle(color: Colors.grey)))
+                          .toList(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+                  Text(
+                    '인원 ${group.memberStatus}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  TextField(
+                    controller: passwordController,
+                    decoration: InputDecoration(
+                      labelText: '비밀번호',
+                      hintText: '비밀번호를 입력하세요',
+                      filled: true,
+                      fillColor: const Color(0xFFF6F6F6),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none,
+                      ),
+                      labelStyle: const TextStyle(
+                        color: Color(0xffff8126),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text('취소'),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: group.isActive
+                              ? null
+                              : () async {
+                            final password = passwordController.text;
+
+                            if (group.currentMembers >= group.maxMembers) {
+                              Get.snackbar('가입 실패', '정원이 초과된 그룹입니다',
+                                  snackPosition: SnackPosition.BOTTOM);
+                              return;
+                            }
+
+                            await joinGroup(group, password);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: group.isActive
+                                ? Colors.grey.shade400
+                                : const Color(0xffff8126),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            group.isActive ? '이미 가입한 그룹' : '그룹 가입',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('[DETAIL FETCH ERROR] $e');
+      }
+      Get.snackbar('오류', '그룹 정보를 불러오지 못했습니다.');
+    }
+  }
+
 
   Future<void> addGroup({
     required String name,
@@ -320,14 +461,14 @@ class GroupController extends GetxController {
     _rankingTimer = Timer.periodic(Duration(seconds: 1), (_) {
       final now = DateTime.now();
       final updatedLeaders =
-          ranking.value.durationLeaders.map((leader) {
-            if (leader.status == TimerStatus.running) {
-              final updatedDuration =
-                  leader.duration + now.difference(leader.sendAt!);
-              return leader.copyWith(duration: updatedDuration, sendAt: now);
-            }
-            return leader;
-          }).toList();
+      ranking.value.durationLeaders.map((leader) {
+        if (leader.status == TimerStatus.running) {
+          final updatedDuration =
+              leader.duration + now.difference(leader.sendAt!);
+          return leader.copyWith(duration: updatedDuration, sendAt: now);
+        }
+        return leader;
+      }).toList();
 
       ranking.value = ranking.value.copyWith(durationLeaders: updatedLeaders);
     });

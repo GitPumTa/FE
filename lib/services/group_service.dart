@@ -158,6 +158,30 @@ class GroupService {
     }
   }
 
+  Future<Group> fetchGroupDetail(String groupId) async {
+    final url = Uri.parse('$baseUrl/group/detail?groupId=$groupId');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      final detail = data['group']; // ← 응답에 따라 다를 수 있음. 실제 예시 알려주시면 더 정확히 대응 가능
+
+      return Group(
+        id: detail['id'] ?? '',
+        name: detail['name'] ?? '',
+        description: detail['description'] ?? '',
+        currentMembers: detail['memberCnt'] ?? 0,
+        maxMembers: detail['capacity'] ?? 0,
+        rules: List<String>.from(detail['rule'] ?? []),
+        password: '',
+        isActive: false,
+      );
+    } else {
+      throw Exception('그룹 상세 정보 로딩 실패: ${response.statusCode}');
+    }
+  }
+
 
 
 }
