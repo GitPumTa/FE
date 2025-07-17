@@ -14,6 +14,7 @@ class GroupController extends GetxController {
   final GroupService groupService = GroupService();
   final ApiService apiService;
   final TokenService tokenService;
+
   GroupController({required this.apiService, required this.tokenService});
 
   // 전체 그룹 리스트 (원본)
@@ -48,6 +49,7 @@ class GroupController extends GetxController {
       fetchGroups();
       if (selectedGroup.value != null) {
         fetchGroupRanking();
+        //fetchMockRanking();
       }
     });
   }
@@ -59,19 +61,22 @@ class GroupController extends GetxController {
 
       final groupsFromApi = await groupService.fetchGroups(userId);
 
-      final updated = groupsFromApi.map((group) => group.copyWith(isActive: false)).toList();
+      final updated =
+          groupsFromApi
+              .map((group) => group.copyWith(isActive: false))
+              .toList();
       allGroups.value = updated;
       groups.value = [...updated];
 
       final myGroupIds = myGroup.map((g) => g.id).toSet();
-      filteredGroups.value = updated.where((g) => !myGroupIds.contains(g.id)).toList();
+      filteredGroups.value =
+          updated.where((g) => !myGroupIds.contains(g.id)).toList();
     } catch (e) {
       if (kDebugMode) {
         print('Error fetching groups: $e');
       }
     }
   }
-
 
   Future<void> fetchMyGroup() async {
     try {
@@ -87,7 +92,6 @@ class GroupController extends GetxController {
         selectedGroup.value = myGroups.first;
         fetchGroupRanking(); // 선택된 그룹 기준 랭킹 불러오기
       }
-
     } catch (e) {
       if (kDebugMode) {
         print('Error fetching my groups: $e');
@@ -95,31 +99,32 @@ class GroupController extends GetxController {
     }
   }
 
-
-
   void searchGroup(String keyword) {
     final query = keyword.trim().toLowerCase();
 
     final myGroupIds = myGroup.map((g) => g.id).toSet(); // 내 그룹 ID 집합 생성
 
-    filteredGroups.value = allGroups
-        .where((group) =>
-    group.name.toLowerCase().contains(query) &&
-        !myGroupIds.contains(group.id)) // 내가 가입한 그룹은 제외
-        .toList();
+    filteredGroups.value =
+        allGroups
+            .where(
+              (group) =>
+                  group.name.toLowerCase().contains(query) &&
+                  !myGroupIds.contains(group.id),
+            ) // 내가 가입한 그룹은 제외
+            .toList();
   }
-
-
 
   void searchMyGroup(String keyword) {
     searchText.value = keyword;
     final query = keyword.trim().toLowerCase(); // 소문자로 변환
 
-    filteredMyGroups.value = myGroup
-        .where((group) => group.name.toLowerCase().contains(query)) // 소문자 기준 비교
-        .toList();
+    filteredMyGroups.value =
+        myGroup
+            .where(
+              (group) => group.name.toLowerCase().contains(query),
+            ) // 소문자 기준 비교
+            .toList();
   }
-
 
   bool verifyGroupPassword(Group group, String inputPassword) {
     return group.password == inputPassword;
@@ -131,7 +136,9 @@ class GroupController extends GetxController {
       final userId = token.username;
 
       if (kDebugMode) {
-        print('[JOIN REQUEST] groupId=${group.id}, userId=$userId, password=$password');
+        print(
+          '[JOIN REQUEST] groupId=${group.id}, userId=$userId, password=$password',
+        );
       }
 
       final result = await groupService.joinGroup(
@@ -160,22 +167,32 @@ class GroupController extends GetxController {
         searchMyGroup(searchText.value);
         Get.back();
 
-        Get.snackbar('가입 성공', result['message'],
-            backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar(
+          '가입 성공',
+          result['message'],
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       } else {
-        Get.snackbar('가입 실패', result['message'],
-            backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          '가입 실패',
+          result['message'],
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       if (kDebugMode) {
         print('[JOIN ERROR] $e');
       }
-      Get.snackbar('오류', '서버에 연결할 수 없습니다.',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        '오류',
+        '서버에 연결할 수 없습니다.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
     }
   }
-
-
 
   Future<void> addGroup({
     required String name,
@@ -204,72 +221,79 @@ class GroupController extends GetxController {
         searchMyGroup(searchText.value);
         selectedGroup.value = newGroup;
 
-        Get.snackbar('그룹 생성 완료', '그룹이 생성되었습니다.',
-            backgroundColor: Colors.green, colorText: Colors.white);
+        Get.snackbar(
+          '그룹 생성 완료',
+          '그룹이 생성되었습니다.',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       } else {
-        Get.snackbar('그룹 생성 실패', '서버 응답 오류',
-            backgroundColor: Colors.red, colorText: Colors.white);
+        Get.snackbar(
+          '그룹 생성 실패',
+          '서버 응답 오류',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
-      Get.snackbar('오류', '그룹 생성 중 문제가 발생했습니다',
-          backgroundColor: Colors.red, colorText: Colors.white);
+      Get.snackbar(
+        '오류',
+        '그룹 생성 중 문제가 발생했습니다',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
       if (kDebugMode) {
         print('[ADD GROUP ERROR] $e');
       }
     }
   }
 
-
-  // Future<void> fetchMockRanking() async {
-  //   await Future.delayed(Duration(seconds: 1));
-  //   // 내 등수와 그룹 등수 및 그룹 리더 타이머 상태, 커밋 갯수 반환, 그룹 드롭 다운 선택, 그룹 설명 반환.
-  //   // 등록한 시간, 총 흐른 시간 으로 타이머 동기화,
-  //   ranking.value = Ranking(
-  //     durationLeaders: [
-  //       DurationLeader(
-  //         name: 'John',
-  //         duration: Duration(seconds: 3600),
-  //         rank: 1,
-  //         status: TimerStatus.running,
-  //         sendAt: DateTime(2025, 7, 14, 12, 50, 0),
-  //       ),
-  //       DurationLeader(
-  //         name: 'Jane',
-  //         duration: Duration(seconds: 3400),
-  //         rank: 2,
-  //         status: TimerStatus.running,
-  //         sendAt: DateTime(2025, 7, 14, 12, 50, 0),
-  //       ),
-  //       DurationLeader(
-  //         name: 'Bob',
-  //         duration: Duration(seconds: 3200),
-  //         rank: 3,
-  //         status: TimerStatus.stopped,
-  //         sendAt: DateTime(2025, 7, 14, 12, 50, 0),
-  //       ),
-  //     ],
-  //     commitLeaders: [
-  //       CommitLeader(name: 'John', commitCount: 10, rank: 1),
-  //       CommitLeader(name: 'Jane', commitCount: 8, rank: 2),
-  //       CommitLeader(name: 'Bob', commitCount: 6, rank: 3),
-  //     ],
-  //     myMonitoringGroup: 'Group A',
-  //     myMonitoringGroupDescription: 'Description of Group A',
-  //     myRank: 5,
-  //     myName: 'Alice',
-  //   );
-  //   _startRankingTimer();
-  // }
+  Future<void> fetchMockRanking() async {
+    await Future.delayed(Duration(seconds: 1));
+    // 내 등수와 그룹 등수 및 그룹 리더 타이머 상태, 커밋 갯수 반환, 그룹 드롭 다운 선택, 그룹 설명 반환.
+    // 등록한 시간, 총 흐른 시간 으로 타이머 동기화,
+    ranking.value = Ranking(
+      durationLeaders: [
+        DurationLeader(
+          name: 'John',
+          duration: Duration(seconds: 3600),
+          rank: 1,
+          status: TimerStatus.running,
+          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
+        ),
+        DurationLeader(
+          name: 'Jane',
+          duration: Duration(seconds: 3400),
+          rank: 2,
+          status: TimerStatus.running,
+          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
+        ),
+        DurationLeader(
+          name: 'Bob',
+          duration: Duration(seconds: 3200),
+          rank: 3,
+          status: TimerStatus.stopped,
+          sendAt: DateTime(2025, 7, 14, 12, 50, 0),
+        ),
+      ],
+      commitLeaders: [
+        CommitLeader(name: 'John', commitCount: 10, rank: 1),
+        CommitLeader(name: 'Jane', commitCount: 8, rank: 2),
+        CommitLeader(name: 'Bob', commitCount: 6, rank: 3),
+      ],
+      myMonitoringGroup: 'Group A',
+      myMonitoringGroupDescription: 'Description of Group A',
+      myRank: 5,
+      myName: 'Alice',
+    );
+    _startRankingTimer();
+  }
 
   Future<void> fetchGroupRanking() async {
     try {
       final token = await tokenService.getToken();
       final userId = token.username;
       final groupId = selectedGroup.value?.id;
-
-      print('>>> [RANKING] selectedGroup: ${selectedGroup.value}');
-      print('>>> [RANKING] groupId: $groupId');
-      print('>>> [RANKING] userId: $userId');
 
       if (groupId == null) {
         Get.snackbar('오류', '선택된 그룹이 없습니다');
@@ -280,8 +304,6 @@ class GroupController extends GetxController {
         accountId: userId,
         groupId: groupId,
       );
-
-      print('>>> [RANKING] 결과: $rankingData');
 
       ranking.value = rankingData;
       _startRankingTimer();
