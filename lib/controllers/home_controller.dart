@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/commit.dart';
 import '../models/repo.dart';
@@ -41,6 +42,8 @@ class HomeController extends GetxController {
   onInit() {
     super.onInit();
     fetchMockRepo();
+    fetchMockCommit(repos[0]);
+    fetchRepo();
   }
 
   @override
@@ -80,6 +83,17 @@ class HomeController extends GetxController {
       ),
     ];
   }
+  Future<void> fetchRepo() async {
+    final token = await tokenService.getToken();
+
+    final response = await http.get(
+      Uri.parse('http://15.164.49.227:8080/main?account_id=${token.username}'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+    print("${response.statusCode} ${response.body}");
+  }
 
   Future<void> fetchMockCommit(Repo repo) async {
     await Future.delayed(Duration(seconds: 1));
@@ -98,6 +112,12 @@ class HomeController extends GetxController {
     final repoDescription = repoDescriptionController.text.trim();
     final repoAddress = repoAddressController.text.trim();
     if (repoTitle.isEmpty || repoDescription.isEmpty || repoAddress.isEmpty) {
+      final response = await http.post(
+        Uri.parse('http://15.164.49.227:8080/main'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
       Get.toNamed(AppRoutes.home);
       return;
     }

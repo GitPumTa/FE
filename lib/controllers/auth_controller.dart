@@ -48,9 +48,15 @@ class AuthController extends GetxController {
     final email = emailController.text;
     final password = passwordController.text;
     final token = await authService.login(email, password);
-    await tokenService.saveToken(token);
-    isLoggedIn.value = true;
-    Get.offAllNamed(AppRoutes.home);
+    if (token.isEmpty) {
+      return;
+    }
+    else{
+      print('login success');
+      await tokenService.saveToken(token);
+      isLoggedIn.value = true;
+      Get.offAllNamed(AppRoutes.home);
+    }
   }
 
   Future<void> logout() async {
