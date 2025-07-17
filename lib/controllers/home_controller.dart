@@ -44,10 +44,7 @@ class HomeController extends GetxController {
   @override
   onInit() {
     super.onInit();
-    fetchMockRepo();
-    fetchMockCommit(repos[0]);
     fetchRepo();
-
   }
 
   @override
@@ -67,26 +64,6 @@ class HomeController extends GetxController {
         : Alignment.centerRight;
   }
 
-  Future<void> fetchMockRepo() async {
-    await Future.delayed(Duration(seconds: 1));
-    // 내 이름으로 등록된 repo 리스트 반환, repo 동기화된 시간 수신 및 동기화.
-    repos.value = [
-      Repo(
-        id: '1',
-        title: 'Repo 1',
-        subtitle: 'Sub Title 1',
-        repoAddress: 'https://github.com/GitPumTa/FE',
-        duration: Duration(seconds: 10),
-      ),
-      Repo(
-        id: '2',
-        title: 'Repo 2',
-        subtitle: 'Sub Title 2',
-        repoAddress: 'Address 2',
-        duration: Duration(seconds: 20),
-      ),
-    ];
-  }
   Future<void> fetchRepo() async {
     final token = await tokenService.getToken();
 
@@ -97,17 +74,16 @@ class HomeController extends GetxController {
         'Content-Type': 'application/json',
       },
     );
-    print("${response.statusCode} ${response.body}");
-  }
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      final List<dynamic> repoList = decoded['repos'];
 
-  Future<void> fetchMockCommit(Repo repo) async {
-    await Future.delayed(Duration(seconds: 1));
-    // repo의 git address 로 api 요청 및, commit 리스트 반환, 갯수 반환 및 타이머 실행동안 커밋 수 확인 및 리더보드 등록 요청 보내기.
-    commits.value = [
-      Commit(date: DateTime.now(), message: 'Commit 1'),
-      Commit(date: DateTime.now(), message: 'Commit 2'),
-    ];
+      repos.assignAll(repoList.map((e) => Repo.fromJson(e)).toList());
 
+      print(decoded['message']); // "정상적으로 repo list 를 로드하였습니다."
+    } else {
+      throw Exception('레포 불러오기 실패: ${response.statusCode}');
+    }
   }
 
   Future<void> fetchRowCommit(String address) async {
@@ -156,15 +132,46 @@ class HomeController extends GetxController {
         commits.add(commit);
       }
     }
-    var commission;
-    print("${commits.length}개의 커밋");
-    for (commission in commits) {
-      print(shortenText(commission.message,20));
-      print(commission.date);
-      print('-------');
-    }
-
     // repo의 git address 로 api 요청 및, commit 리스트 반환, 갯수 반환 및 타이머 실행동안 커밋 수 확인 및 리더보드 등록 요청 보내기.
+    final currentPlannerId = activeRepoId.value;
+    final body2 = {
+      'user_id': username,
+      'planner_id' : currentPlannerId,
+      'commits' : commits.map((c) => c.toJson()).toList(),
+    };
+    final response2 = await http.post(
+      Uri.parse('http://15.164.49.227:8080/commit/update'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(
+        body2
+      )
+    );
+  }
+
+  Future<void> timer() async {
+    final token = await tokenService.getToken();
+    final now = DateTime.now().toIso8601String();
+    final repo = repos.firstWhereOrNull((r) => r.id == activeRepoId.value);
+    final status = repo?.status == TimerStatus.running ? 0 : 1;
+
+    final body = {
+      'account_id': token.username,
+      'send_at': now,
+      'status': status,
+      'total_duration': totalDuration.inSeconds,
+      'repos': repos.map((r) => r.toJson()).toList(),
+    };
+    print(body);
+    final response = await http.post(
+      Uri.parse('http://15.164.49.227:8080/main/timer'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body)
+    );
+    print(response.body);
   }
 
   Future<void> makeNewRepo() async {
@@ -250,6 +257,7 @@ class HomeController extends GetxController {
     activeRepoAddress = RxnString(repos[index].repoAddress);
     final address = repos[index].repoAddress;
     fetchRowCommit(address);
+    timer();
     repos[index] = repos[index].copyWith(status: TimerStatus.running);
     repos.refresh();
     _timer = Timer.periodic(Duration(seconds: 1), (_) {
@@ -276,6 +284,7 @@ class HomeController extends GetxController {
 
     _timer?.cancel();
     _timer = null;
+    timer();
   }
 
   void toggleTimer(Repo repo) {
@@ -307,6 +316,8 @@ class HomeController extends GetxController {
       repos[index] = repos[index].copyWith(status: TimerStatus.stopped);
       repos.refresh();
     }
+    timer();
+    commits.clear();
   }
 
   String formatDuration(Duration d) {

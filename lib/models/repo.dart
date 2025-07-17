@@ -21,10 +21,20 @@ class Repo {
     return Repo(
       id: json['id'],
       title: json['title'],
-      subtitle: json['sub_title'],
+      subtitle: json['subtitle'],
       repoAddress: json['repo_address'],
+      duration: Duration(seconds: json['duration']),
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'subtitle': subtitle,
+      'repo_address': repoAddress,
+      'duration': duration.inSeconds,
+      'status': status.toString(),
+    };}
 
   factory Repo.empty() {
     return Repo(
@@ -32,6 +42,7 @@ class Repo {
       title: '',
       subtitle: '',
       repoAddress: '',
+      duration: Duration.zero,
     );
   }
   Repo copyWith({
