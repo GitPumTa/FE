@@ -103,7 +103,7 @@ class GroupSearchView extends GetView<GroupController> {
             // 그룹 리스트
             Expanded(
               child: Obx(
-                () => ListView.separated(
+                    () => ListView.separated(
                   itemCount: controller.filteredGroups.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
@@ -129,148 +129,11 @@ class GroupSearchView extends GetView<GroupController> {
     );
   }
 
-  void showGroupDetailDialog(BuildContext context, Group group) {
-    final TextEditingController passwordController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (_) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  group.name,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    '그룹 규칙',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // 규칙 리스트
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children:
-                        group.rules
-                            .map(
-                              (rule) => Text(
-                                '• $rule',
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-                Text(
-                  '인원 ${group.memberStatus}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // 비밀번호 입력 필드
-                TextField(
-                  controller: passwordController,
-                  decoration: InputDecoration(
-                    labelText: '비밀번호',
-                    hintText: '비밀번호를 입력하세요',
-                    filled: true,
-                    fillColor: const Color(0xFFF6F6F6),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
-                    ),
-                    labelStyle: const TextStyle(
-                      color: Color(0xffff8126),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // 버튼
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text('취소'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: group.isActive
-                            ? null
-                            : () async {
-                          final password = passwordController.text;
-
-                          if (group.currentMembers >= group.maxMembers) {
-                            Get.snackbar('가입 실패', '정원이 초과된 그룹입니다',
-                                snackPosition: SnackPosition.BOTTOM);
-                            return;
-                          }
-
-                          await controller.joinGroup(group, password);
-                        },
-
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: group.isActive ? Colors.grey.shade400 : const Color(0xffff8126),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: Text(
-                          group.isActive ? '이미 가입한 그룹' : '그룹 가입',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildGroupCard(Group group) {
     return GestureDetector(
-      onTap: () => showGroupDetailDialog(Get.context!, group), // 팝업 띄우기
+      onTap: () => controller.showGroupDetailDialog(Get.context!, group.id), // ← 여기만 바뀜
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
@@ -314,4 +177,5 @@ class GroupSearchView extends GetView<GroupController> {
       ),
     );
   }
+
 }
