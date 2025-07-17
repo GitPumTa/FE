@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
 import '../models/commit.dart';
 import '../models/repo.dart';
@@ -24,6 +26,8 @@ class HomeController extends GetxController {
   RxList<Commit> commits = <Commit>[].obs;
 
   RxnString activeRepoId = RxnString(null);
+  RxnString activeRepoAddress = RxnString(null);
+  final RxString repoValidationMessage = ''.obs; // 오류 메시지용
   final Rx<DateTime> currentTime = DateTime.now().obs;
 
   Timer? _timer;
@@ -41,6 +45,9 @@ class HomeController extends GetxController {
   onInit() {
     super.onInit();
     fetchMockRepo();
+    fetchMockCommit(repos[0]);
+    fetchRepo();
+
   }
 
   @override
@@ -68,7 +75,7 @@ class HomeController extends GetxController {
         id: '1',
         title: 'Repo 1',
         subtitle: 'Sub Title 1',
-        repoAddress: 'Address 1',
+        repoAddress: 'https://github.com/GitPumTa/FE',
         duration: Duration(seconds: 10),
       ),
       Repo(
@@ -80,24 +87,117 @@ class HomeController extends GetxController {
       ),
     ];
   }
+  Future<void> fetchRepo() async {
+    final token = await tokenService.getToken();
+
+    final response = await http.get(
+      Uri.parse('http://15.164.49.227:8080/main?account_id=${token.username}'),
+      // Uri.parse('http://15.164.49.227:8080/ranking/user'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+    print("${response.statusCode} ${response.body}");
+  }
 
   Future<void> fetchMockCommit(Repo repo) async {
     await Future.delayed(Duration(seconds: 1));
     // repo의 git address 로 api 요청 및, commit 리스트 반환, 갯수 반환 및 타이머 실행동안 커밋 수 확인 및 리더보드 등록 요청 보내기.
     commits.value = [
-      Commit(id: '1', message: 'Commit 1'),
-      Commit(id: '2', message: 'Commit 2'),
+      Commit(date: DateTime.now(), message: 'Commit 1'),
+      Commit(date: DateTime.now(), message: 'Commit 2'),
     ];
 
+  }
+
+  Future<void> fetchRowCommit(String address) async {
+    final gitToken = await tokenService.getGithubToken();
+    final username = await tokenService.getUsername();
+
+    final response = await http.get(
+      // Uri.parse('https://api.github.com/repos/tesupark/lifesam_random_pop/commits'),
+      Uri.parse('https://api.github.com/user'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $gitToken',
+      },
+    );
+    final body = jsonDecode(response.body);
+    final name = body['name'];
+    final repoUrl = convertGitHubUrlToApi(address);
+    final commitResponse = await http.get(
+      Uri.parse(repoUrl),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $gitToken',
+      },
+    );
+    if (commitResponse.statusCode != 200) {
+      print('❌ Error: ${commitResponse.statusCode}');
+      return;
+    }
+
+    final List<dynamic> commitsJson = jsonDecode(commitResponse.body);
+
+    // Clear old data
+    commits.clear();
+
+    for (final item in commitsJson) {
+      final authorName = item['commit']['author']['name'];
+      final commit = Commit.fromJson(item);
+      final commitDate = commit.date.toLocal();
+
+      final now = DateTime.now();
+      final isToday = commitDate.year == now.year &&
+          commitDate.month == now.month &&
+          commitDate.day == now.day;
+
+      if (authorName == name && isToday) {
+        commits.add(commit);
+      }
+    }
+    var commission;
+    print("${commits.length}개의 커밋");
+    for (commission in commits) {
+      print(shortenText(commission.message,20));
+      print(commission.date);
+      print('-------');
+    }
+
+    // repo의 git address 로 api 요청 및, commit 리스트 반환, 갯수 반환 및 타이머 실행동안 커밋 수 확인 및 리더보드 등록 요청 보내기.
   }
 
   Future<void> makeNewRepo() async {
     // repoTitleController, repoDescriptionController, repoAddressController 내용을 가지고 fetch 작업을 할거임.
     await Future.delayed(Duration(seconds: 1));
-    final repoTitle = repoTitleController.text.trim();
-    final repoDescription = repoDescriptionController.text.trim();
-    final repoAddress = repoAddressController.text.trim();
-    if (repoTitle.isEmpty || repoDescription.isEmpty || repoAddress.isEmpty) {
+    final repoTitle = repoTitleController.text;
+    final repoDescription = repoDescriptionController.text;
+    final repoAddress = repoAddressController.text;
+    final username = await tokenService.getUsername();
+    print({
+      'user_id': username,
+      'name': repoTitle,
+      'description': repoDescription,
+      'repository_link': repoAddress,
+    });
+    if (repoTitle.isNotEmpty && repoDescription.isNotEmpty && repoAddress.isNotEmpty && gitAddressApproved.value) {
+      final response = await http.post(
+        Uri.parse('http://15.164.49.227:8080/planner/create'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'user_id': username,
+          'name': repoTitle,
+          'description': repoDescription,
+          'repository_link': repoAddress,
+        })
+      );
+      repoTitleController.clear();
+      repoDescriptionController.clear();
+      repoAddressController.clear();
+      gitAddressApproved.value = false;
+      repoValidationMessage.value = '';
       Get.toNamed(AppRoutes.home);
       return;
     }
@@ -108,9 +208,27 @@ class HomeController extends GetxController {
   }
 
   Future<void> approveRepoAddress() async {
-    // repoAddressController 내용을 가지고 fetch 작업을 할거임. 검증이 완료되면 repoAddressController 에 해당하는 TextField입력을 막을것임.
-    await Future.delayed(Duration(seconds: 1));
-    gitAddressApproved.value = true;
+    final address = repoAddressController.text.trim();
+
+    // 빈 값 검증
+    if (address.isEmpty) {
+      repoValidationMessage.value = '주소를 입력해주세요.';
+      return;
+    }
+
+    repoValidationMessage.value = '검사 중...';
+
+    final exists = await checkRepoExists(address);
+
+    if (exists) {
+      gitAddressApproved.value = true;
+      repoValidationMessage.value = '✅ 유효한 레포입니다.';
+      print('✅ 유효한 레포입니다.');
+    } else {
+      gitAddressApproved.value = false;
+      repoValidationMessage.value = '❌ 존재하지 않는 레포입니다.';
+      print('❌ 존재하지 않는 레포입니다.');
+    }
   }
 
 
@@ -129,7 +247,9 @@ class HomeController extends GetxController {
     activeRepoId = RxnString(repoId);
     final index = repos.indexWhere((r) => r.id == repoId);
     if (index == -1) return;
-
+    activeRepoAddress = RxnString(repos[index].repoAddress);
+    final address = repos[index].repoAddress;
+    fetchRowCommit(address);
     repos[index] = repos[index].copyWith(status: TimerStatus.running);
     repos.refresh();
     _timer = Timer.periodic(Duration(seconds: 1), (_) {
@@ -208,4 +328,61 @@ class HomeController extends GetxController {
     final day = dateTime.day.toString().padLeft(2, '0');
     return '$year.$month.$day';
   }
+
+  String convertGitHubUrlToApi(String url) {
+    // .git 제거
+    if (url.endsWith('.git')) {
+      url = url.substring(0, url.length - 4);
+    }
+
+    // Uri 파싱
+    final uri = Uri.parse(url);
+
+    // 유효성 검사
+    if (uri.host != 'github.com') {
+      throw FormatException('올바른 GitHub URL이 아닙니다.');
+    }
+
+    // 경로에서 owner/repo 추출
+    final segments = uri.pathSegments;
+    if (segments.length < 2) {
+      throw FormatException('URL 경로가 너무 짧습니다. (예: /owner/repo)');
+    }
+
+    final owner = segments[0];
+    final repo = segments[1];
+
+    return 'https://api.github.com/repos/$owner/$repo/commits';
+  }
+  String shortenText(String text, int maxLength) {
+    if (text.length <= maxLength) return text;
+    return '${text.substring(0, maxLength)}...';
+  }
+
+  Future<bool> checkRepoExists(String url, {String? token}) async {
+    // .git 제거
+    if (url.endsWith('.git')) {
+      url = url.substring(0, url.length - 4);
+    }
+
+    final uri = Uri.tryParse(url);
+    if (uri == null || uri.host != 'github.com') return false;
+
+    final segments = uri.pathSegments;
+    if (segments.length < 2) return false;
+
+    final owner = segments[0];
+    final repo = segments[1];
+    final apiUrl = 'https://api.github.com/repos/$owner/$repo';
+
+    final response = await http.get(
+      Uri.parse(apiUrl),
+      headers: token != null
+          ? {'Authorization': 'Bearer $token'}
+          : {},
+    );
+
+    return response.statusCode == 200;
+  }
+
 }

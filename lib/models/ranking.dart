@@ -1,6 +1,7 @@
 import 'package:gitpumta/models/repo.dart';
 
 class Ranking {
+
   final List<DurationLeader> durationLeaders;
   final List<CommitLeader> commitLeaders;
   final String myMonitoringGroup;
@@ -18,21 +19,23 @@ class Ranking {
   });
 
   factory Ranking.fromJson(Map<String, dynamic> json) {
-    final durationLeaders =
-        (json['duration_leaders'] as List)
-            .map((e) => DurationLeader.fromJson(e))
-            .toList();
-    final commitLeaders =
-        (json['commit_leaders'] as List)
-            .map((e) => CommitLeader.fromJson(e))
-            .toList();
+    final durationLeaders = (json['duration_leaders'] as List<dynamic>?)
+        ?.map((e) => DurationLeader.fromJson(e))
+        .toList() ??
+        [];
+
+    final commitLeaders = (json['commit_leaders'] as List<dynamic>?)
+        ?.map((e) => CommitLeader.fromJson(e))
+        .toList() ??
+        [];
+
     return Ranking(
       durationLeaders: durationLeaders,
       commitLeaders: commitLeaders,
-      myMonitoringGroup: json['my_monitoring_group'],
-      myMonitoringGroupDescription: json['my_monitoring_group_description'],
-      myRank: json['my_rank'],
-      myName: json['my_name'],
+      myMonitoringGroup: json['my_monitoring_group'] ?? '',
+      myMonitoringGroupDescription: json['my_monitoring_group_description'] ?? '',
+      myRank: int.tryParse(json['my_rank']?.toString() ?? '0') ?? 0,
+      myName: json['my_name'] ?? '',
     );
   }
 
@@ -47,8 +50,6 @@ class Ranking {
     );
   }
 
-
-
   Ranking copyWith({
     List<DurationLeader>? durationLeaders,
   }) {
@@ -60,6 +61,17 @@ class Ranking {
       myRank: myRank,
       myName: myName,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'durationLeaders': durationLeaders.map((e) => e.name).toList(),
+      'commitLeaders': commitLeaders.map((e) => e.name).toList(),
+      'myMonitoringGroup': myMonitoringGroup,
+      'myMonitoringGroupDescription': myMonitoringGroupDescription,
+      'myRank': myRank,
+      'myName': myName,
+    };
   }
 }
 
@@ -80,11 +92,14 @@ class DurationLeader {
 
   factory DurationLeader.fromJson(Map<String, dynamic> json) {
     return DurationLeader(
-      name: json['name'],
-      duration: Duration(seconds: json['duration']),
-      rank: json['rank'],
-      status: TimerStatus.values.firstWhere((s) => s.name == json['status']),
-      sendAt: json['send_at'] != null ? DateTime.parse(json['send_at']) : null,
+      name: json['name'] ?? '',
+      duration: Duration(seconds: json['duration'] ?? 0),
+      rank: json['rank'] ?? 0,
+      status: TimerStatus.values.firstWhere(
+            (s) => s.name == json['status'],
+        orElse: () => TimerStatus.stopped,
+      ),
+      sendAt: json['send_at'] != null ? DateTime.tryParse(json['send_at']) : null,
     );
   }
 
@@ -128,9 +143,9 @@ class CommitLeader {
 
   factory CommitLeader.fromJson(Map<String, dynamic> json) {
     return CommitLeader(
-      name: json['name'],
-      commitCount: json['commit_count'],
-      rank: json['rank'],
+      name: json['name'] ?? '',
+      commitCount: json['commit_count'] ?? 0,
+      rank: json['rank'] ?? 0,
     );
   }
 

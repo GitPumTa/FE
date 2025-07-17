@@ -9,18 +9,33 @@ import '../models/token.dart';
 
 class AuthService extends GetxService {
   Future<Token> login(String email, String password) async {
+    print('login start $email $password');
     final request = await http.post(
-      Uri.parse('/login'),
-      body: {'email': email, 'password': password},
+      Uri.parse('http://15.164.49.227:8080/user/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'accountId': email, 'password': password}),
+    );
+    print(
+      "request.statusCode: ${request.statusCode} request.body: ${request.body}",
     );
     if (request.statusCode == 200) {
-      final token = Token.fromJson(json.decode(request.body));
-      return token;
+      print(request.body);
+      final userId = json.decode(request.body)['id'];
+      final token = Token.testLogin(userId);
+      if (userId == '') {
+        print('login fail');
+        return Token.empty();
+      } else {
+        print('login success');
+        return token;
+      }
     } else {
-      return Token.testLogin();
+      print('login fail');
+      return Token.empty();
       // throw Exception('Failed to login');
     }
   }
+
   Future<bool> checkAuth(Token token) async {
     return !token.isEmpty;
   }

@@ -1,17 +1,17 @@
 class Commit {
-  final String id;
+  final DateTime date;
   final String message;
 
-  Commit({required this.id, required this.message});
+  Commit({required this.date, required this.message});
 
   factory Commit.fromJson(Map<String, dynamic> json) {
     return Commit(
-      id: json['id'],
-      message: json['message'],
+      message: json['commit']['message'] ?? '',
+      date: DateTime.parse(json['commit']['author']['date']),
     );
   }
 
   factory Commit.empty() {
-    return Commit(id: '', message: '');
+    return Commit(date: DateTime.now(), message: '');
   }
 }
