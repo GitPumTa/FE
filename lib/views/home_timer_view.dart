@@ -121,10 +121,9 @@ class HomeTimerView extends GetView<HomeController> {
           ),
           SizedBox(height: 20),
           Obx(() {
-
             final activeId = controller.activeRepoId.value;
             final repo = controller.repos.firstWhereOrNull(
-                  (r) => r.id == activeId,
+              (r) => r.id == activeId,
             );
 
             final isInactive = repo == null;
@@ -133,7 +132,10 @@ class HomeTimerView extends GetView<HomeController> {
             return ElevatedButton(
               onPressed: () => Get.toNamed(AppRoutes.newRepo),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 10,
+                ),
                 elevation: 0,
                 backgroundColor: const Color(0xffFF8126),
                 foregroundColor: Colors.white,
@@ -161,7 +163,46 @@ class HomeTimerView extends GetView<HomeController> {
                 ],
               ),
             );
-          })
+          }),
+          SizedBox(height: 20),
+          Obx(() {
+            final commits = controller.commits;
+            return Container(
+              margin: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x22000000),
+                    blurRadius: 10,
+                    offset: Offset(2, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    '${commits.length}개의 커밋',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(onPressed: () => controller.fetchRowCommit(controller.activeRepoAddress.value!), icon: Icon(HugeIcons.strokeRoundedRefresh)),
+                  SizedBox(height: 10),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: commits.length,
+                    itemBuilder: (context, index) {
+                      final commit = commits[index];
+                      return ListTile(
+                        title: Text(controller.shortenText(commit.message, 50)),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
